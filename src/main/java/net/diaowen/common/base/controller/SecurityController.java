@@ -1,3 +1,4 @@
+/*
 package net.diaowen.common.base.controller;
 
 import net.diaowen.common.base.entity.User;
@@ -144,3 +145,4 @@ public class SecurityController {
 
 
 }
+*/

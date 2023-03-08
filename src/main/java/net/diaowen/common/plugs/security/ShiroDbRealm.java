@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */
+ *//*
+
 package net.diaowen.common.plugs.security;
 
 import java.util.ArrayList;
@@ -51,9 +52,21 @@ public class ShiroDbRealm extends AuthorizingRealm {
 		setCredentialsMatcher(new HashedCredentialsMatcher("SHA-1"));
 	}
 
-	/**
-	 * 认证回调函数,登录时调用.
-	 */
+	*/
+/**
+ * 认证回调函数,登录时调用.
+ * <p>
+ * 授权查询回调函数, 进行鉴权但缓存中无用户的授权信息时调用.
+ * <p>
+ * 更新用户授权信息缓存.
+ * <p>
+ * 授权查询回调函数, 进行鉴权但缓存中无用户的授权信息时调用.
+ * <p>
+ * 更新用户授权信息缓存.
+ * <p>
+ * 更新用户授权信息缓存.
+ *//*
+
 	@Override
 	protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authcToken) throws AuthenticationException {
 		UsernamePasswordToken token = (UsernamePasswordToken) authcToken;
@@ -73,9 +86,15 @@ public class ShiroDbRealm extends AuthorizingRealm {
 		}
 	}
 
-	/**
-	 * 授权查询回调函数, 进行鉴权但缓存中无用户的授权信息时调用.
-	 */
+	*/
+/**
+ * 授权查询回调函数, 进行鉴权但缓存中无用户的授权信息时调用.
+ * <p>
+ * 更新用户授权信息缓存.
+ * <p>
+ * 更新用户授权信息缓存.
+ *//*
+
 	@Override
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
 		String username = (String) principals.fromRealm(getName()).iterator().next();
@@ -91,12 +110,15 @@ public class ShiroDbRealm extends AuthorizingRealm {
 		return null;
 	}
 
-	/**
-	 * 更新用户授权信息缓存.
-	 */
+	*/
+/**
+ * 更新用户授权信息缓存.
+ *//*
+
 	public void clearCachedAuthorizationInfo(String principal) {
 		SimplePrincipalCollection principals = new SimplePrincipalCollection(principal, getName());
 		clearCachedAuthorizationInfo(principals);
 	}
 
 }
+*/

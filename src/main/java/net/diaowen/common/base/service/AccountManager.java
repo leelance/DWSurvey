@@ -1,21 +1,15 @@
 package net.diaowen.common.base.service;
 
-import java.util.Date;
-import java.util.List;
-
+import net.diaowen.common.base.dao.UserDao;
 import net.diaowen.common.base.entity.User;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
+import net.diaowen.common.utils.security.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import net.diaowen.common.base.dao.UserDao;
-import net.diaowen.common.exception.ServiceException;
-import net.diaowen.common.plugs.security.ShiroDbRealm;
-import net.diaowen.common.utils.security.DigestUtils;
+import java.util.List;
 
 /**
  *
@@ -34,7 +28,7 @@ public class AccountManager {
 //	@Autowired
 //	private NotifyMessageProducer notifyMessageProducer;//JMS消息推送
 
-	private ShiroDbRealm shiroRealm;
+	//private ShiroDbRealm shiroRealm;
 
 	/**
 	 * 在保存用户时,发送用户修改通知消息, 由消息接收者异步进行较为耗时的通知邮件发送.
@@ -45,7 +39,7 @@ public class AccountManager {
 	// 演示指定非默认名称的TransactionManager.
 	@Transactional
 	public void saveUser(User user) {
-		if (isSupervisor(user)) {
+		/*if (isSupervisor(user)) {
 			logger.warn("操作员{}尝试修改超级管理员用户", SecurityUtils.getSubject()
 					.getPrincipal());
 			throw new ServiceException("不能修改超级管理员用户");
@@ -57,7 +51,7 @@ public class AccountManager {
 		userDao.save(user);
 		if (shiroRealm != null) {
 			shiroRealm.clearCachedAuthorizationInfo(user.getLoginName());
-		}
+		}*/
 		/*if(bool){
 //			Email email=new Email();
 //			sendNotifyMessage(email);	使用jms辅助 发送邮件
@@ -67,10 +61,10 @@ public class AccountManager {
 
 	@Transactional
 	public void saveUp(User user){
-		if (isSupervisor(user)) {
+		/*if (isSupervisor(user)) {
 			logger.warn("操作员{}尝试修改超级管理员用户", SecurityUtils.getSubject().getPrincipal());
 			throw new ServiceException("不能修改超级管理员用户");
-		}
+		}*/
 		userDao.save(user);
 	}
 
@@ -158,7 +152,7 @@ public class AccountManager {
 	 * 取出当前登陆用户
 	 */
 	public User getCurUser(){
-		Subject subject=SecurityUtils.getSubject();
+		/*Subject subject=SecurityUtils.getSubject();
 
 		if(subject!=null){
 			Object principal=subject.getPrincipal();
@@ -166,7 +160,7 @@ public class AccountManager {
 				User user = findUserByLoginName(principal.toString());
 				return user;
 			}
-		}
+		}*/
 		return null;
 	}
 

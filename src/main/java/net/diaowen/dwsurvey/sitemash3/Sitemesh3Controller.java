@@ -1,3 +1,4 @@
+/*
 package net.diaowen.dwsurvey.sitemash3;
 
 
@@ -15,3 +16,4 @@ public class Sitemesh3Controller {
         return "admin-default";
     }
 }
+*/

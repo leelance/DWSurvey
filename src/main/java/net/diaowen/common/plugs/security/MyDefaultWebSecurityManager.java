@@ -1,3 +1,4 @@
+/*
 package net.diaowen.common.plugs.security;
 
 import net.diaowen.common.base.entity.User;
@@ -19,3 +20,4 @@ public class MyDefaultWebSecurityManager extends DefaultWebSecurityManager{
 	}
 	
 }
+*/

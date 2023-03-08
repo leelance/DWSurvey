@@ -1,3 +1,4 @@
+/*
 package net.diaowen.dwsurvey.config;
 
 import net.diaowen.common.plugs.security.*;
@@ -120,3 +121,4 @@ public class ShiroConfig {
 
 
 }
+*/

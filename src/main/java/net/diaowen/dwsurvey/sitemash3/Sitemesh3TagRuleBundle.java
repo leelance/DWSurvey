@@ -1,3 +1,4 @@
+/*
 package net.diaowen.dwsurvey.sitemash3;
 
 import org.sitemesh.SiteMeshContext;
@@ -22,3 +23,4 @@ public class Sitemesh3TagRuleBundle implements TagRuleBundle {
         }
     }
 }
+*/

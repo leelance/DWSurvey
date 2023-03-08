@@ -1,3 +1,4 @@
+/*
 package net.diaowen.common.plugs.security.filter;
 
 import org.apache.shiro.subject.Subject;
@@ -29,3 +30,4 @@ public class MyRolesAuthorizationFilter extends RolesAuthorizationFilter {
     }
 
 }
+*/

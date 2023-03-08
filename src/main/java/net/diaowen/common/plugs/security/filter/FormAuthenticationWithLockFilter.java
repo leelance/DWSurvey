@@ -1,3 +1,4 @@
+/*
 package net.diaowen.common.plugs.security.filter;
 
 import java.util.Date;
@@ -109,7 +110,9 @@ public class FormAuthenticationWithLockFilter extends FormAuthenticationFilter {
 		this.successAdminRole = successAdminRole;
 	}
 
-    /* 得到某个账号还可以登录次数 */
+    */
+/* 得到某个账号还可以登录次数 *//*
+
     public Long getAccountLocked(String username){
    	 long remainLoginAttempts=0;
         if (username!=null && accountLockMap.get((String) username) != null) {
@@ -117,7 +120,9 @@ public class FormAuthenticationWithLockFilter extends FormAuthenticationFilter {
         }
         return remainLoginAttempts+1;
    }
-    /* 重写登录失败，加入了失败时还可以重试的次数信息 */
+    */
+/* 重写登录失败，加入了失败时还可以重试的次数信息 *//*
+
     @Override
     protected boolean onLoginFailure(AuthenticationToken token,
     		AuthenticationException e, ServletRequest request,
@@ -155,3 +160,4 @@ public class FormAuthenticationWithLockFilter extends FormAuthenticationFilter {
 
 
 }
+*/

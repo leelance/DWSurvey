@@ -1,31 +1,21 @@
 package net.diaowen.dwsurvey;
 
-import org.apache.catalina.Context;
-import org.apache.tomcat.util.scan.StandardJarScanner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * 项目启动
+ *
+ * @author diaowen
+ * @since 2023/3/8 23:59
+ */
 @SpringBootApplication
-@ComponentScan(basePackages = {"net.diaowen.common","net.diaowen.dwsurvey"})
-//@EnableTransactionManagement
+@ComponentScan(basePackages = {"net.diaowen.common", "net.diaowen.dwsurvey"})
 public class DwsurveyApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(DwsurveyApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(DwsurveyApplication.class, args);
+  }
 
-    @Bean
-    public TomcatServletWebServerFactory tomcatFactory(){
-        return new TomcatServletWebServerFactory(){
-
-            @Override
-            protected void postProcessContext(Context context) {
-                ((StandardJarScanner) context.getJarScanner()).setScanManifest(false);
-            }
-        };
-    }
 }

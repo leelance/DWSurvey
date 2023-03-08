@@ -1,3 +1,4 @@
+/*
 
 package net.diaowen.dwsurvey.config;
 
@@ -16,3 +17,4 @@ public class SiteMeshFilter extends ConfigurableSiteMeshFilter {
 
 
 }
+*/

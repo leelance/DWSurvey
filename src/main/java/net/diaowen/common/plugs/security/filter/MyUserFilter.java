@@ -1,3 +1,4 @@
+/*
 package net.diaowen.common.plugs.security.filter;
 
 import net.diaowen.common.plugs.httpclient.HttpResult;
@@ -45,3 +46,4 @@ public class MyUserFilter extends UserFilter {
     }
 
 }
+*/
