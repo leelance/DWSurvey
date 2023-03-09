@@ -1,25 +1,20 @@
 package net.diaowen.dwsurvey.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.QuCheckboxDao;
-import net.diaowen.dwsurvey.entity.Question;
+import net.diaowen.dwsurvey.entity.QuCheckbox;
+import net.diaowen.dwsurvey.service.QuCheckboxManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import net.diaowen.common.plugs.page.Page;
-import net.diaowen.common.service.BaseServiceImpl;
-import net.diaowen.dwsurvey.entity.QuCheckbox;
-import net.diaowen.dwsurvey.service.QuCheckboxManager;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.List;
 
 /**
  * 多选题
@@ -42,7 +37,7 @@ public class QuCheckboxManagerImpl extends BaseServiceImpl<QuCheckbox, String> i
 	public List<QuCheckbox> findByQuId(String quId){
 
 		/*
-		Page<QuCheckbox> page=new Page<QuCheckbox>();
+		PageDto<QuCheckbox> page=new PageDto<QuCheckbox>();
 		page.setOrderBy("orderById");
 		page.setOrderDir("asc");
 		List<PropertyFilter> filters=new ArrayList<PropertyFilter>();

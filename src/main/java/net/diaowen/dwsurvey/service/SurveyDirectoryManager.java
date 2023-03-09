@@ -1,95 +1,98 @@
 package net.diaowen.dwsurvey.service;
 
+import net.diaowen.common.plugs.page.PageDto;
+import net.diaowen.common.service.BaseService;
+import net.diaowen.dwsurvey.entity.SurveyDirectory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.io.IOException;
 import java.util.List;
 
-import net.diaowen.common.plugs.httpclient.HttpResult;
-import net.diaowen.common.plugs.page.Page;
-import net.diaowen.common.service.BaseService;
-import net.diaowen.dwsurvey.entity.SurveyDirectory;
-
 /**
  * 问卷处理
- * @author keyuan(keyuan258@gmail.com)
  *
+ * @author keyuan(keyuan258 @ gmail.com)
+ * <p>
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
-public interface SurveyDirectoryManager extends BaseService<SurveyDirectory, String>{
+public interface SurveyDirectoryManager extends BaseService<SurveyDirectory, String> {
 
-	/**
-	 * 根据 最底层对象，得到此对象所在的目录结构
-	 * @param surveyDirectory
-	 * @return
-	 */
-	public List<SurveyDirectory> findPath(SurveyDirectory surveyDirectory);
+  /**
+   * 根据 最底层对象，得到此对象所在的目录结构
+   *
+   * @param surveyDirectory
+   * @return
+   */
+  List<SurveyDirectory> findPath(SurveyDirectory surveyDirectory);
 
-	public SurveyDirectory getSurvey(String id);
+  SurveyDirectory getSurvey(String id);
 
-	public SurveyDirectory findUniqueBy(String id);
+  SurveyDirectory findUniqueBy(String id);
 
-	public SurveyDirectory getSurveyBySid(String sId);
+  SurveyDirectory getSurveyBySid(String sId);
 
-	public SurveyDirectory getSurveyByUser(String id, String userId);
+  SurveyDirectory getSurveyByUser(String id, String userId);
 
-	public void getSurveyDetail(String id, SurveyDirectory directory);
+  void getSurveyDetail(String id, SurveyDirectory directory);
 
-	public void upSurveyData(SurveyDirectory entity);
+  void upSurveyData(SurveyDirectory entity);
 
-	public void executeSurvey(SurveyDirectory entity);
+  void executeSurvey(SurveyDirectory entity);
 
-	public void closeSurvey(SurveyDirectory entity);
+  void closeSurvey(SurveyDirectory entity);
 
-	public SurveyDirectory findByNameUn(String id, String parentId, String surveyName);
+  SurveyDirectory findByNameUn(String id, String parentId, String surveyName);
 
-	public void backDesign(SurveyDirectory entity);
+  void backDesign(SurveyDirectory entity);
 
-//	public void save(SurveyDirectory entity, String[] surGroupIds);
+//	 void save(SurveyDirectory entity, String[] surGroupIds);
 
-//	public void saveUserSurvey(SurveyDirectory entity, String[] surGroupIds);
+//	 void saveUserSurvey(SurveyDirectory entity, String[] surGroupIds);
 
-	public void saveUser(SurveyDirectory t);
+  void saveUser(SurveyDirectory t);
 
-	public void saveUserSurvey(SurveyDirectory entity);
+  void saveUserSurvey(SurveyDirectory entity);
 
-	public SurveyDirectory findByNameUserUn(String id, String surveyName);
+  SurveyDirectory findByNameUserUn(String id, String surveyName);
 
-	public Page<SurveyDirectory> findPage(Page<SurveyDirectory> page,String surveyName,Integer surveyState,Integer isShare);
+  PageDto<SurveyDirectory> findPage(PageDto<SurveyDirectory> page, String surveyName, Integer surveyState, Integer isShare);
 
-	public List<SurveyDirectory> newSurveyList();
+  List<SurveyDirectory> newSurveyList();
 
-	public void upSuveyText(SurveyDirectory entity);
+  void upSuveyText(SurveyDirectory entity);
 
-	public void checkUp(SurveyDirectory surveyDirectory);
+  void checkUp(SurveyDirectory surveyDirectory);
 
-	public SurveyDirectory findNext(SurveyDirectory directory);
+  SurveyDirectory findNext(SurveyDirectory directory);
 
-	public void saveAll(SurveyDirectory directory);
+  void saveAll(SurveyDirectory directory);
 
-	public Page<SurveyDirectory> findByUser(Page<SurveyDirectory> page, SurveyDirectory surveyDirectory);
+  Page<SurveyDirectory> findByUser(PageRequest page, SurveyDirectory surveyDirectory);
 
-	public Page<SurveyDirectory> findByUser(Page<SurveyDirectory> page, String surveyName,Integer surveyState);
+  Page<SurveyDirectory> findByUser(PageRequest page, String surveyName, Integer surveyState);
 
-	public Page<SurveyDirectory> findByGroup(String groupId1, String groupId2, Page<SurveyDirectory> page);
+  PageDto<SurveyDirectory> findByGroup(String groupId1, String groupId2, PageDto<SurveyDirectory> page);
 
-	public List<SurveyDirectory> findByIndex();
+  List<SurveyDirectory> findByIndex();
 
-	public List<SurveyDirectory> findByT1();
+  List<SurveyDirectory> findByT1();
 
-	public void saveByAdmin(SurveyDirectory t);
+  void saveByAdmin(SurveyDirectory t);
 
-	public Page<SurveyDirectory> findModel(Page<SurveyDirectory> page,
-                                           SurveyDirectory entity);
+  PageDto<SurveyDirectory> findModel(PageDto<SurveyDirectory> page,
+                                     SurveyDirectory entity);
 
-	public SurveyDirectory createBySurvey(String fromBankId, String surveyName,
-                                          String tag);
+  SurveyDirectory createBySurvey(String fromBankId, String surveyName,
+                                 String tag);
 
-	public void devSurvey(SurveyDirectory survey) throws IOException;
+  void devSurvey(SurveyDirectory survey) throws IOException;
 
-	public String devSurveyJson(String surveyId);
+  String devSurveyJson(String surveyId);
 
-	public void delete(String[] id);
+  void delete(String[] id);
 
-	void upSurveyState(String surveyId, Integer surveyState) throws IOException;
+  void upSurveyState(String surveyId, Integer surveyState) throws IOException;
 
 }

@@ -5,6 +5,7 @@ import net.diaowen.common.json.JsonUtils;
 import net.diaowen.common.plugs.httpclient.HttpResult;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -35,10 +36,11 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
       message = "用户名或密码错误！";
     } else if (exception instanceof LockedException) {
       message = "用户已被锁定！";
+    } else if (exception instanceof InsufficientAuthenticationException) {
+      message = "token无效";
     } else {
       message = "认证失败，请联系网站管理员！";
     }
-
 
     HttpResult<String> result = new HttpResult<>(HttpServletResponse.SC_UNAUTHORIZED);
     result.setResultMsg(message);

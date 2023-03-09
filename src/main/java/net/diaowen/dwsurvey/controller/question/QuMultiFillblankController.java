@@ -1,18 +1,15 @@
 package net.diaowen.dwsurvey.controller.question;
 
 import net.diaowen.common.QuType;
-import net.diaowen.common.base.entity.User;
-import net.diaowen.common.base.service.AccountManager;
-import net.diaowen.common.plugs.page.Page;
-import net.diaowen.dwsurvey.entity.*;
+import net.diaowen.dwsurvey.entity.QuMultiFillblank;
+import net.diaowen.dwsurvey.entity.Question;
+import net.diaowen.dwsurvey.entity.QuestionLogic;
 import net.diaowen.dwsurvey.service.AnDFillblankManager;
 import net.diaowen.dwsurvey.service.QuMultiFillblankManager;
 import net.diaowen.dwsurvey.service.QuestionManager;
-import net.diaowen.dwsurvey.service.SurveyDirectoryManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;

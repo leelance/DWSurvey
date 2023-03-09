@@ -1,10 +1,7 @@
 package net.diaowen.dwsurvey.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.QuRadioDao;
-import net.diaowen.dwsurvey.entity.QuOrderby;
 import net.diaowen.dwsurvey.entity.QuRadio;
 import net.diaowen.dwsurvey.service.QuRadioManager;
 import org.hibernate.criterion.Criterion;
@@ -12,12 +9,12 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import net.diaowen.common.service.BaseServiceImpl;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.List;
 
 
 /**
@@ -45,7 +42,7 @@ public class QuRadioManagerImpl extends BaseServiceImpl<QuRadio, String> impleme
 	 * 得到某一题的选项
 	 */
 	public List<QuRadio> findByQuId(String quId){
-		/*Page<QuRadio> page=new Page<QuRadio>();
+		/*PageDto<QuRadio> page=new PageDto<QuRadio>();
 		page.setOrderBy("orderById");
 		page.setOrderDir("asc");
 

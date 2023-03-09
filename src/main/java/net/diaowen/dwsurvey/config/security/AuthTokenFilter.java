@@ -37,7 +37,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     try {
       String jwt = parseJwt(request);
       if (jwt != null && jwtTokenHelper.validateJwtToken(jwt)) {
-        String username = jwtTokenHelper.getUserNameFromJwtToken(jwt);
+        String username = jwtTokenHelper.getUsername(jwt);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken authentication =
@@ -47,7 +47,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
       }
     } catch (Exception e) {
-      logger.error("Cannot set user authentication: {}", e);
+      log.warn("Cannot set user authentication: ", e);
     }
 
     filterChain.doFilter(request, response);

@@ -28,9 +28,7 @@ import java.util.regex.Pattern;
  * http://dwsurvey.net
  */
 @Service
-public class SurveyStatsManagerImpl extends
-    BaseServiceImpl<SurveyStats, String> implements SurveyStatsManager {
-
+public class SurveyStatsManagerImpl extends BaseServiceImpl<SurveyStats, String> implements SurveyStatsManager {
   @Autowired
   private SurveyStatsDao surveyStatsDao;
   @Autowired

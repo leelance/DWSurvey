@@ -8,8 +8,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * jwt token helper
@@ -23,25 +21,62 @@ import java.util.Map;
 public class JwtTokenHelper {
   private final SurveyProperties surveyProperties;
 
+  /**
+   * 生成token
+   *
+   * @param authentication Authentication
+   * @return String
+   */
   public String generateJwtToken(Authentication authentication) {
     UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
-    Map<String, Object> map = new HashMap<>(8);
-    map.put("userId", userPrincipal.getId());
-    map.put("email", userPrincipal.getEmail());
+
     return Jwts.builder()
         .setSubject((userPrincipal.getUsername()))
-        .setClaims(map)
+        .claim("userId", userPrincipal.getId())
+        .claim("email", userPrincipal.getEmail())
         .setIssuedAt(new Date())
         .setExpiration(new Date((new Date()).getTime() + surveyProperties.getJwt().getExpiration()))
         .signWith(SignatureAlgorithm.HS512, surveyProperties.getJwt().getSecret())
         .compact();
   }
 
-  public String getUserNameFromJwtToken(String token) {
+  /**
+   * 获取username
+   *
+   * @param token token
+   * @return username
+   */
+  public String getUsername(String token) {
+    Claims claims = getClaims(token);
+    return claims.getSubject();
+  }
+
+  /**
+   * 获取userId
+   *
+   * @param token token
+   * @return userId
+   */
+  public String getUserId(String token) {
+    Claims claims = getClaims(token);
+    return claims.get("userId", String.class);
+  }
+
+  /**
+   * 获取email
+   *
+   * @param token token
+   * @return email
+   */
+  public String getEmail(String token) {
+    Claims claims = getClaims(token);
+    return claims.get("email", String.class);
+  }
+
+  private Claims getClaims(String token) {
     return Jwts.parser().setSigningKey(surveyProperties.getJwt().getSecret())
         .parseClaimsJws(token)
-        .getBody()
-        .getSubject();
+        .getBody();
   }
 
   public boolean validateJwtToken(String authToken) {

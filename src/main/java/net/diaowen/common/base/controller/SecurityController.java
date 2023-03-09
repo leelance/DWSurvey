@@ -30,6 +30,13 @@ public class SecurityController {
   private final AuthenticationManager authenticationManager;
   private final JwtTokenHelper jwtTokenHelper;
 
+  /**
+   * 用户登陆接口
+   *
+   * @param userName userName
+   * @param password password
+   * @return LoginRegisterResult
+   */
   @PostMapping("/login.do")
   public LoginRegisterResult login(String userName, String password) {
     if (log.isDebugEnabled()) {

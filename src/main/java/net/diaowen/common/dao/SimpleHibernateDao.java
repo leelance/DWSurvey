@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.io.Serializable;
 import java.util.Collection;
@@ -41,9 +42,9 @@ public class SimpleHibernateDao<T, ID extends Serializable> implements ISimpleHi
   protected Logger logger = LoggerFactory.getLogger(getClass());
   @Autowired
   protected EntityManagerFactory entityManagerFactory;
-
+  @Autowired
+  protected EntityManager entityManager;
   protected Class<T> entityClass;
-
 
   /**
    * 通过子类的泛型定义取得对象类型Class.
@@ -72,17 +73,16 @@ public class SimpleHibernateDao<T, ID extends Serializable> implements ISimpleHi
   public void save(final T entity) {
     try {
       AssertUtils.notNull(entity, "entity不能为空");
-      getSession().saveOrUpdate(entity);
-      logger.debug("save entity: {}", entity);
+      entityManager.persist(entity);
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.error("===>save fail: ", e);
     }
   }
 
   @Override
   public void delete(final T entity) {
     AssertUtils.notNull(entity, "entity不能为空");
-    getSession().delete(entity);
+    entityManager.remove(entity);
     logger.debug("delete entity: {}", entity);
   }
 
@@ -96,7 +96,7 @@ public class SimpleHibernateDao<T, ID extends Serializable> implements ISimpleHi
   @Override
   public T get(final ID id) {
     AssertUtils.notNull(id, "id不能为空");
-    return getSession().load(entityClass, id);
+    return entityManager.find(entityClass, id);
   }
 
   @Override

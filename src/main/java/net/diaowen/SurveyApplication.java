@@ -11,7 +11,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @since 2023/3/8 23:59
  */
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = {"net.diaowen.common.base.dao", "net.diaowen.common.dao"})
+@EnableJpaRepositories(basePackages = {
+    "net.diaowen.common.base.dao",
+    "net.diaowen.common.dao",
+    "net.diaowen.dwsurvey.repository"})
 public class SurveyApplication {
 
   public static void main(String[] args) {

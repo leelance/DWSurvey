@@ -1,15 +1,11 @@
 package net.diaowen.dwsurvey.service;
 
-import java.util.List;
-import java.util.Map;
-
-import net.diaowen.common.base.entity.User;
-import net.diaowen.common.plugs.page.Page;
+import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.service.BaseService;
 import net.diaowen.dwsurvey.entity.*;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 问卷回答
@@ -37,11 +33,12 @@ public interface SurveyAnswerManager extends BaseService<SurveyAnswer, String>{
 
 	/**
 	 * 取出某份问卷的答卷数据
+	 *
 	 * @param page
 	 * @param surveyId
 	 * @return
 	 */
-	public Page<SurveyAnswer> answerPage(Page<SurveyAnswer> page, String surveyId);
+	public PageDto<SurveyAnswer> answerPage(PageDto<SurveyAnswer> page, String surveyId);
 
 	public void deleteData(String[] ids);
 

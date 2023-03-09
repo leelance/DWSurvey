@@ -1,23 +1,21 @@
 package net.diaowen.dwsurvey.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import net.diaowen.common.base.dao.UserDao;
+import net.diaowen.common.base.entity.User;
 import net.diaowen.common.plugs.httpclient.HttpResult;
+import net.diaowen.common.plugs.page.PageDto;
+import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.common.utils.security.DigestUtils;
 import net.diaowen.dwsurvey.service.UserManager;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.SystemOutLogger;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import net.diaowen.common.base.dao.UserDao;
-import net.diaowen.common.base.entity.User;
-import net.diaowen.common.plugs.page.Page;
-import net.diaowen.common.service.BaseServiceImpl;
-import net.diaowen.common.utils.security.DigestUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -58,15 +56,15 @@ public class UserManagerImpl extends BaseServiceImpl<User, String> implements Us
 		return null;
 	}
 
-	public Page<User> findPage(Page<User> page, User entity) {
-		List<Criterion> criterions=new ArrayList<Criterion>();
+	public PageDto<User> findPage(PageDto<User> page, User entity) {
+		List<Criterion> criterions = new ArrayList<Criterion>();
 		Integer status = entity.getStatus();
 		String loginName = entity.getLoginName();
-		if(status!=null && !"".equals(status)){
+		if (status != null && !"".equals(status)) {
 			criterions.add(Restrictions.eq("status", status));
 		}
-		if(loginName!=null && !"".equals(loginName)){
-			criterions.add(Restrictions.like("loginName", "%"+loginName+"%"));
+		if (loginName != null && !"".equals(loginName)) {
+			criterions.add(Restrictions.like("loginName", "%" + loginName + "%"));
 		}
 		criterions.add(Restrictions.disjunction().add(Restrictions.eq("visibility", 1)).add(Restrictions.isNull("visibility")));
 		page.setOrderBy("createTime");
@@ -140,23 +138,23 @@ public class UserManagerImpl extends BaseServiceImpl<User, String> implements Us
 
 
 	@Override
-	public Page<User> findPageByKeyword(Page<User> page, String keyword) {
-		Criterion cri1=Restrictions.like("name", "%"+keyword+"%");
+	public PageDto<User> findPageByKeyword(PageDto<User> page, String keyword) {
+		Criterion cri1 = Restrictions.like("name", "%" + keyword + "%");
 //		Criterion cri2=Restrictions.like("pinyin", "%"+keyword+"%");
 //		Criterion cri3 = Restrictions.or(cri1,cri2);
-		return userDao.findPage(page,cri1);
+		return userDao.findPage(page, cri1);
 	}
 
-	public Page<User> findPage(Page<User> page, Integer status, String loginName, String name, String email,String cellphone) {
-		List<Criterion> criterions=new ArrayList<Criterion>();
-		if(status!=null){
+	public PageDto<User> findPage(PageDto<User> page, Integer status, String loginName, String name, String email, String cellphone) {
+		List<Criterion> criterions = new ArrayList<Criterion>();
+		if (status != null) {
 			criterions.add(Restrictions.eq("status", status));
 		}
-		if(StringUtils.isNotEmpty(loginName)){
-			criterions.add(Restrictions.like("loginName", "%"+loginName+"%"));
+		if (StringUtils.isNotEmpty(loginName)) {
+			criterions.add(Restrictions.like("loginName", "%" + loginName + "%"));
 		}
-		if(StringUtils.isNotEmpty(name)){
-			criterions.add(Restrictions.like("name", "%"+name+"%"));
+		if (StringUtils.isNotEmpty(name)) {
+			criterions.add(Restrictions.like("name", "%" + name + "%"));
 		}
 		if(StringUtils.isNotEmpty(email)){
 			criterions.add(Restrictions.like("email", "%"+email+"%"));

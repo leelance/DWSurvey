@@ -1,8 +1,6 @@
 package net.diaowen.dwsurvey.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.QuMultiFillblankDao;
 import net.diaowen.dwsurvey.entity.QuMultiFillblank;
 import net.diaowen.dwsurvey.service.QuMultiFillblankManager;
@@ -12,12 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import net.diaowen.common.service.BaseServiceImpl;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.List;
 
 
 /**
@@ -38,7 +35,7 @@ public class QuMultiFillblankManagerImpl extends BaseServiceImpl<QuMultiFillblan
 	}
 
 	public List<QuMultiFillblank> findByQuId(String quId){
-		/*Page<QuMultiFillblank> page=new Page<QuMultiFillblank>();
+		/*PageDto<QuMultiFillblank> page=new PageDto<QuMultiFillblank>();
 		page.setOrderBy("orderById");
 		page.setOrderDir("asc");
 

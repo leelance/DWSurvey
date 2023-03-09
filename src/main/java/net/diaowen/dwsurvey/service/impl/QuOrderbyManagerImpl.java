@@ -1,10 +1,7 @@
 package net.diaowen.dwsurvey.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.QuOrderbyDao;
-import net.diaowen.dwsurvey.entity.QuMultiFillblank;
 import net.diaowen.dwsurvey.entity.QuOrderby;
 import net.diaowen.dwsurvey.service.QuOrderbyManager;
 import org.hibernate.criterion.Criterion;
@@ -13,12 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import net.diaowen.common.service.BaseServiceImpl;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.List;
 
 
 /**
@@ -40,7 +36,7 @@ public class QuOrderbyManagerImpl extends BaseServiceImpl<QuOrderby, String> imp
 	}
 
 	public List<QuOrderby> findByQuId(String quId){
-		/*Page<QuOrderby> page=new Page<QuOrderby>();
+		/*PageDto<QuOrderby> page=new PageDto<QuOrderby>();
 		page.setOrderBy("orderById");
 		page.setOrderDir("asc");
 

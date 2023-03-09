@@ -1,14 +1,13 @@
 package net.diaowen.common.service;
 
-import java.io.Serializable;
-import java.util.List;
-
+import net.diaowen.common.base.entity.IdEntity;
+import net.diaowen.common.dao.BaseDao;
+import net.diaowen.common.plugs.page.PageDto;
 import org.hibernate.criterion.Criterion;
 import org.springframework.transaction.annotation.Transactional;
 
-import net.diaowen.common.base.entity.IdEntity;
-import net.diaowen.common.dao.BaseDao;
-import net.diaowen.common.plugs.page.Page;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * 业务基类
@@ -67,11 +66,11 @@ public abstract class BaseServiceImpl<T extends IdEntity, ID extends Serializabl
 	}
 
 	@Override
-	public Page<T> findPage(Page<T> page, Criterion... criterions) {
+	public PageDto<T> findPage(PageDto<T> page, Criterion... criterions) {
 		return getBaseDao().findPage(page, criterions);
 	}
 
-	public Page<T> findPageByCri(Page<T> page, List<Criterion> criterions) {
+	public PageDto<T> findPageByCri(PageDto<T> page, List<Criterion> criterions) {
 		return getBaseDao().findPageByCri(page, criterions);
 	}
 

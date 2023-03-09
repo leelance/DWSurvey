@@ -7,7 +7,7 @@
  */
 package net.diaowen.common.dao;
 
-import net.diaowen.common.plugs.page.Page;
+import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.plugs.page.PageRequest;
 import net.diaowen.common.utils.AssertUtils;
 import net.diaowen.common.utils.ReflectionUtils;
@@ -53,22 +53,17 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
 
   //-- 分页查询函数 --//
 
-  /* (non-Javadoc)
-   * @see net.diaowen.common.orm.hibernate.IHibernateDao#getAll(net.diaowen.common.orm.PageRequest)
-   */
   @Override
-  public Page<T> getAll(final PageRequest pageRequest) {
+  public PageDto<T> getAll(final PageRequest pageRequest) {
     return findPage(pageRequest);
   }
 
-  /* (non-Javadoc)
-   * @see net.diaowen.common.orm.hibernate.IHibernateDao#findPage(net.diaowen.common.orm.PageRequest, java.lang.String, java.lang.Object)
-   */
+
   @Override
-  public Page<T> findPage(final PageRequest pageRequest, String hql, final Object... values) {
+  public PageDto<T> findPage(final PageRequest pageRequest, String hql, final Object... values) {
     AssertUtils.notNull(pageRequest, "pageRequest不能为空");
 
-    Page<T> page = new Page<T>(pageRequest);
+    PageDto<T> page = new PageDto<>(pageRequest);
 
     if (pageRequest.isCountTotal()) {
       long totalCount = countHqlResult(hql, values);
@@ -87,13 +82,10 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
     return page;
   }
 
-  /* (non-Javadoc)
-   * @see net.diaowen.common.orm.hibernate.IHibernateDao#findPage(net.diaowen.common.orm.PageRequest, java.lang.String)
-   */
   @Override
-  public Page<T> findPage(final PageRequest pageRequest, String hql) {
+  public PageDto<T> findPage(final PageRequest pageRequest, String hql) {
     AssertUtils.notNull(pageRequest, "pageRequest不能为空");
-    Page<T> page = new Page<T>(pageRequest);
+    PageDto<T> page = new PageDto<>(pageRequest);
     if (pageRequest.isCountTotal()) {
       long totalCount = countHqlResult(hql);
       page.setTotalItems(totalCount);
@@ -108,14 +100,11 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
     return page;
   }
 
-  /* (non-Javadoc)
-   * @see net.diaowen.common.orm.hibernate.IHibernateDao#findPage(net.diaowen.common.orm.PageRequest, java.lang.String, java.util.Map)
-   */
   @Override
-  public Page<T> findPage(final PageRequest pageRequest, String hql, final Map<String, ?> values) {
+  public PageDto<T> findPage(final PageRequest pageRequest, String hql, final Map<String, ?> values) {
     AssertUtils.notNull(pageRequest, "page不能为空");
 
-    Page<T> page = new Page<T>(pageRequest);
+    PageDto<T> page = new PageDto<T>(pageRequest);
 
     if (pageRequest.isCountTotal()) {
       long totalCount = countHqlResult(hql, values);
@@ -134,18 +123,15 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
     return page;
   }
 
-  /* (non-Javadoc)
-   * @see net.diaowen.common.orm.hibernate.IHibernateDao#findPage(net.diaowen.common.orm.PageRequest, org.hibernate.criterion.Criterion)
-   */
   @Override
-  public Page<T> findPage(final PageRequest pageRequest, final Criterion... criterions) {
+  public PageDto<T> findPage(final PageRequest pageRequest, final Criterion... criterions) {
     AssertUtils.notNull(pageRequest, "page不能为空");
-
-    Page<T> page = new Page<T>(pageRequest);
+    PageDto<T> page = new PageDto<>(pageRequest);
 
     Criteria c = createCriteria(criterions);
     if (pageRequest.isCountTotal()) {
       long totalCount = countCriteriaResult(c);
+
       page.setTotalItems(totalCount);
       pageRequest.setTotalPage(page.getTotalPage());
     }
@@ -155,7 +141,7 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
     }
     setPageRequestToCriteria(c, pageRequest);
 
-    List result = c.list();
+    List<T> result = c.list();
     page.setResult(result);
     return page;
   }
@@ -189,7 +175,7 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
    * 设置分页参数到Criteria对象,辅助函数.
    */
   protected Criteria setPageRequestToCriteria(final Criteria c, final PageRequest pageRequest) {
-    AssertUtils.isTrue(pageRequest.getPageSize() > 0, "Page Size must larger than zero");
+    AssertUtils.isTrue(pageRequest.getPageSize() > 0, "PageDto Size must larger than zero");
 
     c.setFirstResult(pageRequest.getOffset());
     c.setMaxResults(pageRequest.getPageSize());
@@ -378,6 +364,7 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
     return (T) c.uniqueResult();
   }
 
+  @Override
   public T findFirst(List<Criterion> criterions) {
     Criteria c = createCriteria(criterions);
     c.setMaxResults(1);
@@ -385,17 +372,17 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
   }
 
   @Override
-  public Page<T> findPageList(PageRequest pageRequest,
-                              List<Criterion> criterions) {
-    if (criterions != null && criterions.size() > 0) {
+  public PageDto<T> findPageList(PageRequest pageRequest, List<Criterion> criterions) {
+    if (criterions != null && !criterions.isEmpty()) {
       Criteria c = createCriteria(criterions);
       return findPageCriteria(pageRequest, c);
     }
     return findPage(pageRequest);
   }
 
-  public Page<T> findPageCriteria(PageRequest pageRequest, Criteria c) {
-    Page<T> page = new Page<T>(pageRequest);
+  @Override
+  public PageDto<T> findPageCriteria(PageRequest pageRequest, Criteria c) {
+    PageDto<T> page = new PageDto<>(pageRequest);
     if (pageRequest.isCountTotal()) {
       long totalCount = countCriteriaResult(c);
       page.setTotalItems(totalCount);
@@ -412,9 +399,9 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
     return page;
   }
 
-  public Page<T> findPageByCri(Page<T> pageRequest, List<Criterion> criterions) {
+  public PageDto<T> findPageByCri(PageDto<T> pageRequest, List<Criterion> criterions) {
     Criteria c = createCriteria(criterions);
-    Page<T> page = new Page<T>(pageRequest);
+    PageDto<T> page = new PageDto<T>(pageRequest);
     if (pageRequest.isCountTotal()) {
       long totalCount = countCriteriaResult(c);
       page.setTotalItems(totalCount);
@@ -432,31 +419,7 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
   }
 
 
-  public Page<T> findPageOderBy(Page<T> pageRequest, String orderByProperty, boolean isAsc, List<Criterion> criterions) {
-    Criteria c = createCriteria(criterions);
-    if (isAsc) {
-      c.addOrder(Order.asc(orderByProperty));
-    } else {
-      c.addOrder(Order.desc(orderByProperty));
-    }
-
-    Page<T> page = new Page<T>(pageRequest);
-    if (pageRequest.isCountTotal()) {
-      long totalCount = countCriteriaResult(c);
-      page.setTotalItems(totalCount);
-      pageRequest.setTotalPage(page.getTotalPage());
-    }
-    if (pageRequest.isIslastpage()) {
-      pageRequest.setPageNo(pageRequest.getTotalPage());
-      page.setPageNo(pageRequest.getPageNo());
-    }
-    setPageRequestToCriteria(c, pageRequest);
-    List result = c.list();
-    page.setResult(result);
-    return page;
-  }
-
-  public Page<T> findPageOderBy(Page<T> pageRequest, String orderByProperty, boolean isAsc, Criterion... criterions) {
+  public PageDto<T> findPageOderBy(PageDto<T> pageRequest, String orderByProperty, boolean isAsc, List<Criterion> criterions) {
     Criteria c = createCriteria(criterions);
     if (isAsc) {
       c.addOrder(Order.asc(orderByProperty));
@@ -464,7 +427,31 @@ public class HibernateDao<T, ID extends Serializable> extends SimpleHibernateDao
       c.addOrder(Order.desc(orderByProperty));
     }
 
-    Page<T> page = new Page<T>(pageRequest);
+    PageDto<T> page = new PageDto<T>(pageRequest);
+    if (pageRequest.isCountTotal()) {
+      long totalCount = countCriteriaResult(c);
+      page.setTotalItems(totalCount);
+      pageRequest.setTotalPage(page.getTotalPage());
+    }
+    if (pageRequest.isIslastpage()) {
+      pageRequest.setPageNo(pageRequest.getTotalPage());
+      page.setPageNo(pageRequest.getPageNo());
+    }
+    setPageRequestToCriteria(c, pageRequest);
+    List result = c.list();
+    page.setResult(result);
+    return page;
+  }
+
+  public PageDto<T> findPageOderBy(PageDto<T> pageRequest, String orderByProperty, boolean isAsc, Criterion... criterions) {
+    Criteria c = createCriteria(criterions);
+    if (isAsc) {
+      c.addOrder(Order.asc(orderByProperty));
+    } else {
+      c.addOrder(Order.desc(orderByProperty));
+    }
+
+    PageDto<T> page = new PageDto<T>(pageRequest);
     if (pageRequest.isCountTotal()) {
       long totalCount = countCriteriaResult(c);
       page.setTotalItems(totalCount);

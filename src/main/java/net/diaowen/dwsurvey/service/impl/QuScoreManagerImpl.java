@@ -1,9 +1,8 @@
 package net.diaowen.dwsurvey.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.diaowen.dwsurvey.entity.QuRadio;
+import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.dao.QuScoreDao;
+import net.diaowen.dwsurvey.entity.QuScore;
 import net.diaowen.dwsurvey.service.QuScoreManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -11,14 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import net.diaowen.common.service.BaseServiceImpl;
-import net.diaowen.dwsurvey.dao.QuScoreDao;
-import net.diaowen.dwsurvey.entity.QuScore;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.List;
 
 
 /**
@@ -40,7 +36,7 @@ public class QuScoreManagerImpl extends BaseServiceImpl<QuScore, String> impleme
 	}
 
 	public List<QuScore> findByQuId(String quId){
-		/*Page<QuScore> page=new Page<QuScore>();
+		/*PageDto<QuScore> page=new PageDto<QuScore>();
 		page.setOrderBy("orderById");
 		page.setOrderDir("asc");
 

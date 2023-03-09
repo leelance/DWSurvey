@@ -4,7 +4,7 @@ import net.diaowen.common.base.entity.User;
 import net.diaowen.common.plugs.httpclient.HttpResult;
 import net.diaowen.common.plugs.httpclient.PageResult;
 import net.diaowen.common.plugs.httpclient.ResultUtils;
-import net.diaowen.common.plugs.page.Page;
+import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.dwsurvey.config.DWSurveyConfig;
 import net.diaowen.dwsurvey.service.UserManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class UserAdminController {
   @RequestMapping(value = "/list.do", method = RequestMethod.GET)
   @ResponseBody
   public PageResult<User> list(PageResult<User> pageResult, Integer status, String loginName, String name, String email, String cellphone) {
-    Page page = ResultUtils.getPageByPageResult(pageResult);
+    PageDto page = ResultUtils.getPageByPageResult(pageResult);
     page = userManager.findPage(page, status, loginName, name, email, cellphone);
     pageResult = ResultUtils.getPageResultByPage(page, pageResult);
     return pageResult;

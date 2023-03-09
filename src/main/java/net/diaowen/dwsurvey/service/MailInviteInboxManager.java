@@ -1,22 +1,22 @@
 package net.diaowen.dwsurvey.service;
 
-import java.util.List;
-
-import net.diaowen.common.plugs.page.Page;
+import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.dwsurvey.entity.MailInviteInbox;
 
+import java.util.List;
+
 public interface MailInviteInboxManager {
-    public void save(MailInviteInbox entity);
+  public void save(MailInviteInbox entity);
 
-    public Page<MailInviteInbox> findPage(Page<MailInviteInbox> page2,
-                                          String surveyInviteId);
+  public PageDto<MailInviteInbox> findPage(PageDto<MailInviteInbox> page2,
+                                           String surveyInviteId);
 
-    public List<MailInviteInbox> findList(String mailInviteId);
+  public List<MailInviteInbox> findList(String mailInviteId);
 
-    public MailInviteInbox getBySendcloudEmailId(String emailId);
+  public MailInviteInbox getBySendcloudEmailId(String emailId);
 
-	public MailInviteInbox getByEmail(String mailInviteId, String email);
+  public MailInviteInbox getByEmail(String mailInviteId, String email);
 
-	public void post(String mailInviteId);
-	
+  public void post(String mailInviteId);
+
 }

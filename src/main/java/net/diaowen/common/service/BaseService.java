@@ -1,12 +1,11 @@
 package net.diaowen.common.service;
 
-import java.io.Serializable;
-import java.util.List;
-
+import net.diaowen.common.base.entity.IdEntity;
+import net.diaowen.common.plugs.page.PageDto;
 import org.hibernate.criterion.Criterion;
 
-import net.diaowen.common.base.entity.IdEntity;
-import net.diaowen.common.plugs.page.Page;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * 业务基类接口
@@ -33,5 +32,5 @@ public interface BaseService<T extends IdEntity,ID extends Serializable> {
 
 	public List<T> findList(Criterion... criterions);
 
-	public Page<T> findPage(Page<T> page, Criterion... criterion);
+	public PageDto<T> findPage(PageDto<T> page, Criterion... criterion);
 }

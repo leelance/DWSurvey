@@ -1,6 +1,6 @@
 package net.diaowen.common.dao;
 
-import net.diaowen.common.plugs.page.Page;
+import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.plugs.page.PageRequest;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
@@ -17,7 +17,7 @@ public interface IHibernateDao<T, ID extends Serializable> extends ISimpleHibern
   /**
    * 分页获取全部对象.
    */
-  Page<T> getAll(final PageRequest pageRequest);
+  PageDto<T> getAll(final PageRequest pageRequest);
 
   /**
    * 按HQL分页查询.
@@ -27,8 +27,8 @@ public interface IHibernateDao<T, ID extends Serializable> extends ISimpleHibern
    * @param values      数量可变的查询参数,按顺序绑定.
    * @return 分页查询结果, 附带结果列表及所有查询输入参数.
    */
-  Page<T> findPage(final PageRequest pageRequest, String hql,
-                   final Object... values);
+  PageDto<T> findPage(final PageRequest pageRequest, String hql,
+                      final Object... values);
 
   /**
    * 按HQL分页查询.
@@ -37,7 +37,7 @@ public interface IHibernateDao<T, ID extends Serializable> extends ISimpleHibern
    * @param hql         hql语句.
    * @return 分页查询结果, 附带结果列表及所有查询输入参数.
    */
-  Page<T> findPage(final PageRequest pageRequest, String hql);
+  PageDto<T> findPage(final PageRequest pageRequest, String hql);
 
   /**
    * 按HQL分页查询.
@@ -47,8 +47,8 @@ public interface IHibernateDao<T, ID extends Serializable> extends ISimpleHibern
    * @param values 命名参数,按名称绑定.
    * @return 分页查询结果, 附带结果列表及所有查询输入参数.
    */
-  Page<T> findPage(final PageRequest pageRequest, String hql,
-                   final Map<String, ?> values);
+  PageDto<T> findPage(final PageRequest pageRequest, String hql,
+                      final Map<String, ?> values);
 
   /**
    * 按Criteria分页查询.
@@ -57,13 +57,13 @@ public interface IHibernateDao<T, ID extends Serializable> extends ISimpleHibern
    * @param criterions 数量可变的Criterion.
    * @return 分页查询结果.附带结果列表及所有查询输入参数.
    */
-  Page<T> findPage(final PageRequest pageRequest,
-                   final Criterion... criterions);
+  PageDto<T> findPage(final PageRequest pageRequest,
+                      final Criterion... criterions);
 
-  Page<T> findPageList(final PageRequest pageRequest,
-                       final List<Criterion> criterions);
+  PageDto<T> findPageList(final PageRequest pageRequest,
+                          final List<Criterion> criterions);
 
-  public Page<T> findPageCriteria(PageRequest pageRequest, Criteria c);
+  PageDto<T> findPageCriteria(PageRequest pageRequest, Criteria c);
 
   /**
    * action转入id得到模型
@@ -71,28 +71,28 @@ public interface IHibernateDao<T, ID extends Serializable> extends ISimpleHibern
    * @param id
    * @return
    */
-  public T getModel(ID id);
+  T getModel(ID id);
 
   /**
    * 排序--取出一列数据
    */
-  public List<T> findByOrder(String orderByProperty, boolean isAsc, Criterion... criterions);
+  List<T> findByOrder(String orderByProperty, boolean isAsc, Criterion... criterions);
 
   /**
    * 取出第一条
    */
-  public T findFirst(Criterion... criterions);
+  T findFirst(Criterion... criterions);
 
-  public T findFirst(List<Criterion> criterions);
+  T findFirst(List<Criterion> criterions);
 
-  public T findFirst(String orderByProperty, boolean isAsc, Criterion... criterions);
+  T findFirst(String orderByProperty, boolean isAsc, Criterion... criterions);
 
-  public T findFirst(String orderByProperty, boolean isAsc, List<Criterion> criterions);
+  T findFirst(String orderByProperty, boolean isAsc, List<Criterion> criterions);
 
   /**
    * 执行一条hql返回 一个object[]
    */
-  public Object findUniObjs(String hql, Object... values);
+  Object findUniObjs(String hql, Object... values);
 
   /**
    * 返回list<Object[]>
@@ -101,15 +101,15 @@ public interface IHibernateDao<T, ID extends Serializable> extends ISimpleHibern
    * @param values
    * @return
    */
-  public List<Object[]> findList(String hql, Object... values);
+  List<Object[]> findList(String hql, Object... values);
 
-  public Page<T> findPageByCri(Page<T> page, List<Criterion> criterions);
+  PageDto<T> findPageByCri(PageDto<T> page, List<Criterion> criterions);
 
-  public List<T> findAll(CriteriaQuery criteriaQuery);
+  List<T> findAll(CriteriaQuery criteriaQuery);
 
-  public Page<T> findPageOderBy(Page<T> pageRequest, String orderByProperty, boolean isAsc, List<Criterion> criterions);
+  PageDto<T> findPageOderBy(PageDto<T> pageRequest, String orderByProperty, boolean isAsc, List<Criterion> criterions);
 
-  public Page<T> findPageOderBy(Page<T> pageRequest, String orderByProperty, boolean isAsc, Criterion... criterions);
+  PageDto<T> findPageOderBy(PageDto<T> pageRequest, String orderByProperty, boolean isAsc, Criterion... criterions);
 
 
 }

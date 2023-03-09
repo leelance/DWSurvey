@@ -1,16 +1,15 @@
 package net.diaowen.dwsurvey.service.impl;
 
-import net.diaowen.common.plugs.page.Page;
+import net.diaowen.common.plugs.page.PageDto;
+import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.dao.AnFillblankDao;
 import net.diaowen.dwsurvey.entity.AnFillblank;
 import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.service.AnFillblankManager;
-import net.diaowen.dwsurvey.dao.AnFillblankDao;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import net.diaowen.common.service.BaseServiceImpl;
 
 /**
  * 填空题
@@ -44,10 +43,10 @@ public class AnFillblankManagerImpl extends BaseServiceImpl<AnFillblank, String>
 	}
 
 	@Override
-	public Page<AnFillblank> findPage(Page<AnFillblank> page, String quId) {
-		Criterion cri1 = Restrictions.eq("quId",quId);
-		Criterion cri2 = Restrictions.eq("visibility",1);
-		return findPage(page,cri1,cri2);
+	public PageDto<AnFillblank> findPage(PageDto<AnFillblank> page, String quId) {
+		Criterion cri1 = Restrictions.eq("quId", quId);
+		Criterion cri2 = Restrictions.eq("visibility", 1);
+		return findPage(page, cri1, cri2);
 	}
 	
 }

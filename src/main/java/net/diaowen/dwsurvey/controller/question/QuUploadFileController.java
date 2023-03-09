@@ -2,7 +2,7 @@ package net.diaowen.dwsurvey.controller.question;
 
 import net.diaowen.common.CheckType;
 import net.diaowen.common.QuType;
-import net.diaowen.common.plugs.page.Page;
+import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.dwsurvey.entity.AnUplodFile;
 import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.entity.QuestionLogic;
@@ -188,14 +188,14 @@ public class QuUploadFileController {
 
 	//取上传题结果
 	@RequestMapping("/answers.do")
-	public ModelAndView answers(Page<AnUplodFile> anPage, String quId, String surveyId) throws Exception {
+	public ModelAndView answers(PageDto<AnUplodFile> anPage, String quId, String surveyId) throws Exception {
 		ModelAndView modelAndView = new ModelAndView();
 		anPage.setPageSize(10000);
-		Criterion cri1 = Restrictions.eq("quId",quId);
+		Criterion cri1 = Restrictions.eq("quId", quId);
 		anPage = anUploadFileManager.findPage(anPage, cri1);
-		modelAndView.addObject("anPage",anPage);
-		modelAndView.addObject("directory",surveyDirectoryManager.get(surveyId));
-		modelAndView.addObject("surveyId",surveyId);
+		modelAndView.addObject("anPage", anPage);
+		modelAndView.addObject("directory", surveyDirectoryManager.get(surveyId));
+		modelAndView.addObject("surveyId", surveyId);
 		modelAndView.setViewName("/diaowen-da/upload-files");
 		return modelAndView;
 	}
@@ -243,21 +243,20 @@ public class QuUploadFileController {
 	}
 
 
-
 	//批量打包下载 －－ //只打包当前页的
 	/*
-     * 批量下载另存为
-     */
+	 * 批量下载另存为
+	 */
 	@RequestMapping("/batDownload.do")
-	public String batDownload(HttpServletRequest request,HttpServletResponse response,Page<AnUplodFile> anPage,String quId) throws IOException {
-		Criterion cri1 = Restrictions.eq("quId",quId);
+	public String batDownload(HttpServletRequest request, HttpServletResponse response, PageDto<AnUplodFile> anPage, String quId) throws IOException {
+		Criterion cri1 = Restrictions.eq("quId", quId);
 		anPage = anUploadFileManager.findPage(anPage, cri1);
 
-		String tmpFileName = "ga_"+quId+".zip";
+		String tmpFileName = "ga_" + quId + ".zip";
 		byte[] buffer = new byte[1024];
 		String rootPath = request.getServletContext().getRealPath("/upload/work/");
 		File dir = new File(rootPath);
-		if(!dir.exists()){
+		if (!dir.exists()) {
 			dir.mkdirs();
 		}
 		String strZipPath = request.getServletContext().getRealPath("/upload/work/"+tmpFileName);

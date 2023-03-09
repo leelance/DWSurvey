@@ -1,29 +1,20 @@
 package net.diaowen.dwsurvey.dao.impl;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.diaowen.dwsurvey.dao.QuestionDao;
-import net.diaowen.dwsurvey.entity.QuOrderby;
-import net.diaowen.dwsurvey.entity.QuestionLogic;
 import net.diaowen.common.QuType;
+import net.diaowen.common.dao.BaseDaoImpl;
+import net.diaowen.common.plugs.page.PageDto;
+import net.diaowen.dwsurvey.dao.QuestionDao;
+import net.diaowen.dwsurvey.entity.*;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
-
-import net.diaowen.common.dao.BaseDaoImpl;
-import net.diaowen.common.plugs.page.Page;
-import net.diaowen.dwsurvey.entity.QuCheckbox;
-import net.diaowen.dwsurvey.entity.QuMultiFillblank;
-import net.diaowen.dwsurvey.entity.QuRadio;
-import net.diaowen.dwsurvey.entity.QuScore;
-import net.diaowen.dwsurvey.entity.Question;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.List;
 
 /**
  * 题基础 dao
@@ -38,7 +29,7 @@ import javax.persistence.criteria.Root;
 public class QuestionDaoImpl extends BaseDaoImpl<Question, String> implements QuestionDao {
 
 	public List<Question> findByBelongTag(String qubankId,String tag){
-		Page<Question> page=new Page<Question>();
+		PageDto<Question> page = new PageDto<Question>();
 		page.setOrderBy("orderById");
 		page.setOrderDir("asc");
 
