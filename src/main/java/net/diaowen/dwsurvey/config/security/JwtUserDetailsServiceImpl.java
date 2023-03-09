@@ -40,7 +40,6 @@ public class JwtUserDetailsServiceImpl implements UserDetailsService {
     if (status == UserStatus.INACTIVE.getCode()) {
       throw new LockedException("当前用户尚未激活");
     }
-
     return new UserDetailsImpl(user.getId(), username, user.getEmail(), user.getShaPassword(), new ArrayList<>());
   }
 }

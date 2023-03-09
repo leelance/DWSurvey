@@ -1,10 +1,14 @@
 package net.diaowen.dwsurvey.config;
 
+import com.google.common.collect.Lists;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Collections;
 
 /**
  * HttpClientConfig
@@ -17,16 +21,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class HttpClientConfig {
 
   @Bean
-  public WebMvcConfigurer corsMappingConfigurer() {
-    return new WebMvcConfigurer() {
-      @Override
-      public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-            .allowedOriginPatterns()
-            .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD")
-            .maxAge(3600);
-      }
-    };
+  public CorsFilter corsWebFilter() {
+    CorsConfiguration corsConfig = new CorsConfiguration();
+    corsConfig.setAllowedOriginPatterns(Collections.singletonList("*"));
+    corsConfig.setMaxAge(3600L);
+    corsConfig.setAllowedMethods(Lists.newArrayList("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"));
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/api/**", corsConfig);
+    return new CorsFilter(source);
   }
 
 }

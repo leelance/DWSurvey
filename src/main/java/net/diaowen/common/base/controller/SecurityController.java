@@ -2,6 +2,7 @@ package net.diaowen.common.base.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.diaowen.common.plugs.httpclient.HttpResult;
 import net.diaowen.dwsurvey.config.security.JwtTokenHelper;
 import net.diaowen.dwsurvey.config.security.UserDetailsImpl;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,10 +10,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,5 +55,17 @@ public class SecurityController {
         .map(GrantedAuthority::getAuthority)
         .collect(Collectors.toList());
     return LoginRegisterResult.success(roles, token);
+  }
+
+  @PostMapping("/logout.do")
+  public HttpResult<String> logout(HttpServletRequest request, HttpServletResponse response) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth != null) {
+      if (log.isDebugEnabled()) {
+        log.debug("===>{} logout", auth.getPrincipal());
+      }
+      new SecurityContextLogoutHandler().logout(request, response, auth);
+    }
+    return HttpResult.success();
   }
 }

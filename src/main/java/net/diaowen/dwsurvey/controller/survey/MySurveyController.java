@@ -40,13 +40,14 @@ public class MySurveyController {
    * 拉取问卷列表
    */
   @GetMapping(value = "/list.do")
-  public Page<SurveyDirectory> list(PageResult<SurveyDirectory> pageResult, String surveyName, Integer surveyState) {
+  public PageResult<SurveyDirectory> list(PageResult<SurveyDirectory> pageResult, String surveyName, Integer surveyState) {
     if (log.isDebugEnabled()) {
       log.debug("===>app survey list params name: {}, state: {}", surveyName, surveyState);
     }
 
-    PageRequest page = PageRequest.of(pageResult.getCurrent(), pageResult.getPageSize());
-    return surveyDirectoryManager.findByUser(page, surveyName, surveyState);
+    PageRequest page = pageResult.to();
+    Page<SurveyDirectory> p = surveyDirectoryManager.findByUser(page, surveyName, surveyState);
+    return PageResult.convert(p);
   }
 
 

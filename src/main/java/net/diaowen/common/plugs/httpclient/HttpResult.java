@@ -80,6 +80,10 @@ public class HttpResult<T> {
     return new HttpResult(HttpStatus.SUCCESS, data);
   }
 
+  public static HttpResult<String> success() {
+    return new HttpResult(HttpStatus.SUCCESS);
+  }
+
   public static HttpResult NOLOGIN() {
     return new HttpResult(HttpStatus.NO_LOGIN, null);
   }
