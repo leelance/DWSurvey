@@ -1,5 +1,4 @@
 dwsurvey:
-  # 用户模式切换，暂且保持默认 local
   site: 'local'
   web:
     # 后端文件存储目录，默认即在安装包同级目录下
@@ -34,6 +33,9 @@ dwsurvey:
     info: DWSurvey OSS V5.2.6 Boot
     number: OSS V5.2.6
     built: 2022/03/17
+  jwt:
+    secret: lanceSecretKey
+    expiration: 86400000
 
 # 服务占用的端口号
 server:
@@ -68,6 +70,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+      naming:
+        physical-strategy: net.diaowen.common.plugs.mapper.SnakeCaseNamingStrategy
     properties:
       hibernate:
         show_sql: true

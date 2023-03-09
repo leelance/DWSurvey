@@ -1,45 +1,25 @@
 package net.diaowen.common.base.controller;
 
+import lombok.Data;
 import net.diaowen.common.plugs.httpclient.HttpResult;
 
-public class LoginRegisterResult {
+import java.util.List;
+import java.util.Objects;
 
+/**
+ * LoginRegisterResult
+ *
+ * @author diaowen
+ * @since 2023/3/9 10:26
+ */
+@Data
+public class LoginRegisterResult {
   private String status;
-  private String type;
+  private String type = "account";
   private String[] currentAuthority;
+  private String token;
   private HttpResult httpResult;
 
-  public String getStatus() {
-    return status;
-  }
-
-  public void setStatus(String status) {
-    this.status = status;
-  }
-
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
-  }
-
-  public String[] getCurrentAuthority() {
-    return currentAuthority;
-  }
-
-  public void setCurrentAuthority(String[] currentAuthority) {
-    this.currentAuthority = currentAuthority;
-  }
-
-  public HttpResult getHttpResult() {
-    return httpResult;
-  }
-
-  public void setHttpResult(HttpResult httpResult) {
-    this.httpResult = httpResult;
-  }
 
   public static LoginRegisterResult RESULT(String status, String type) {
     LoginRegisterResult loginResult = new LoginRegisterResult();
@@ -52,25 +32,25 @@ public class LoginRegisterResult {
   public static LoginRegisterResult SUCCESS(String currentAuthority) {
     LoginRegisterResult loginResult = new LoginRegisterResult();
     loginResult.setStatus("ok");
-    loginResult.setType("account");
-//        loginResult.setCurrentAuthority("admin");
     loginResult.setCurrentAuthority(new String[]{currentAuthority});
     return loginResult;
   }
 
-  public static LoginRegisterResult SUCCESS(String[] currentAuthority) {
+  public static LoginRegisterResult success(List<String> currentAuthority, String token) {
     LoginRegisterResult loginResult = new LoginRegisterResult();
     loginResult.setStatus("ok");
-    loginResult.setType("account");
-//        loginResult.setCurrentAuthority("admin");
-    loginResult.setCurrentAuthority(currentAuthority);
+    if (Objects.nonNull(currentAuthority) && !currentAuthority.isEmpty()) {
+      loginResult.setCurrentAuthority(currentAuthority.toArray(new String[0]));
+    } else {
+      loginResult.setCurrentAuthority(new String[0]);
+    }
+    loginResult.setToken(token);
     return loginResult;
   }
 
   public static LoginRegisterResult FAILURE() {
     LoginRegisterResult loginResult = new LoginRegisterResult();
     loginResult.setStatus("error");
-    loginResult.setType("account");
     loginResult.setCurrentAuthority(new String[]{"guest"});
     return loginResult;
   }
@@ -78,10 +58,8 @@ public class LoginRegisterResult {
   public static LoginRegisterResult FAILURE(HttpResult httpResult) {
     LoginRegisterResult loginResult = new LoginRegisterResult();
     loginResult.setStatus("error");
-    loginResult.setType("account");
     loginResult.setCurrentAuthority(new String[]{"guest"});
     loginResult.setHttpResult(httpResult);
     return loginResult;
   }
-
 }

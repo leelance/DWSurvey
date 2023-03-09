@@ -1,0 +1,11 @@
+{
+  "groups": [
+    {
+      "sourceType": "net.diaowen.dwsurvey.config.prop.SurveyProperties",
+      "name": "dwsurvey",
+      "type": "net.diaowen.dwsurvey.config.prop.SurveyProperties"
+    }
+  ],
+  "properties": [
+  ]
+}

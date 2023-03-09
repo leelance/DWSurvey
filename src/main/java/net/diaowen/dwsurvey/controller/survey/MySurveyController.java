@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -75,7 +73,7 @@ public class MySurveyController {
                 survey = surveyAnswerManager.upAnQuNum(survey);
                 return HttpResult.SUCCESS(survey);
             }else{
-                return HttpResult.buildResult(HttpStatus.NOLOGIN);
+                return HttpResult.buildResult(HttpStatus.NO_LOGIN);
             }
         }catch (Exception e){
             e.printStackTrace();

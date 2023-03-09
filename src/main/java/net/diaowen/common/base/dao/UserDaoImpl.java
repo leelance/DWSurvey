@@ -17,7 +17,6 @@ public class UserDaoImpl extends BaseDaoImpl<User, String> implements UserDao {
   @Override
   public void resetUserGroup(String groupId) {
     String sql = "UPDATE t_user SET user_group_id = '' WHERE id = id";
-    this.getSession().createSQLQuery(sql).executeUpdate();
+    this.getSession().createNativeQuery(sql).executeUpdate();
   }
-
 }

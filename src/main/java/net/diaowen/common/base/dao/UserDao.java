@@ -2,17 +2,20 @@ package net.diaowen.common.base.dao;
 
 import net.diaowen.common.base.entity.User;
 import net.diaowen.common.dao.BaseDao;
-import net.diaowen.common.plugs.page.Page;
 
 
 /**
- * @author keyuan(keyuan258@gmail.com)
- *
+ * @author keyuan(keyuan258 @ gmail.com)
+ * <p>
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
 public interface UserDao extends BaseDao<User, String> {
 
-	public void resetUserGroup(String groupId);
-	
+  /**
+   * reset user group
+   *
+   * @param groupId groupId
+   */
+  void resetUserGroup(String groupId);
 }
