@@ -1,5 +1,6 @@
 package net.diaowen.dwsurvey.service.impl;
 
+import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.QuType;
@@ -9,11 +10,13 @@ import net.diaowen.common.utils.ReflectionUtils;
 import net.diaowen.dwsurvey.config.security.UserDetailsImpl;
 import net.diaowen.dwsurvey.dao.QuestionDao;
 import net.diaowen.dwsurvey.entity.*;
-import net.diaowen.dwsurvey.repository.QuestionRepository;
-import net.diaowen.dwsurvey.repository.SurveyDirectoryRepository;
+import net.diaowen.dwsurvey.repository.*;
 import net.diaowen.dwsurvey.service.*;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -45,6 +48,12 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
   private final AccountManager accountManager;
   private final QuestionRepository questionRepository;
   private final SurveyDirectoryRepository surveyDirectoryRepository;
+  private final QuRadioRepository quRadioRepository;
+  private final QuCheckBoxRepository quCheckBoxRepository;
+  private final QuMultiFillBankRepository quMultiFillBankRepository;
+  private final QuScoreRepository quScoreRepository;
+  private final QuOrderByRepository quOrderByRepository;
+  private final QuLogicRepository quLogicRepository;
 
   @Override
   public void setBaseDao() {
@@ -54,7 +63,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
   /**
    * 所有修改，新增题的入口 方法
    *
-   * @param question
+   * @param question Question
    */
   @Override
   public void save(Question question) {
@@ -66,12 +75,12 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
           if (uuid == null || "".equals(uuid)) {
             question.setId(null);
           }
-          questionRepository.save(question);
+
+          saveQuestion(question);
         }
       });
     }
   }
-
 
   /**
    * 依据条件得到符合条件的题列表，不包含选项信息   用于列表显示
@@ -140,19 +149,9 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
 
   @Override
   public List<Question> findByParentQuId(String parentQuId) {
-		/*List<PropertyFilter> filters=new ArrayList<PropertyFilter>();
-		filters.add(new PropertyFilter("EQS_parentQuUuId", parentQuId));
-		return findList(filters);*/
-
-    CriteriaBuilder criteriaBuilder = questionDao.getSession().getCriteriaBuilder();
-    CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(Question.class);
-    Root root = criteriaQuery.from(Question.class);
-    criteriaQuery.select(root);
-    Predicate eqParentQuId = criteriaBuilder.equal(root.get("parentQuUuId"), parentQuId);
-    criteriaQuery.where(eqParentQuId);
-    criteriaQuery.orderBy(criteriaBuilder.asc(root.get("orderById")));
-    return questionDao.findAll(criteriaQuery);
-
+    Specification<Question> spec = (root, query, cb) -> cb.and(cb.equal(root.get("parentQuUuId"), parentQuId));
+    Sort sort = Sort.by(Sort.Direction.ASC, "orderById");
+    return questionRepository.findAll(spec, sort);
   }
 
   /**
@@ -203,12 +202,10 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
       Question question = get(quId);
       //同时删除掉相应的选项
       if (question != null) {
-        QuType quType = question.getQuType();
         String belongId = question.getBelongId();
         int orderById = question.getOrderById();
-        questionDao.delete(question);
-        //更新ID
-        questionDao.quOrderByIdDel1(belongId, orderById);
+        questionRepository.delete(question);
+        questionRepository.subQuestionOrderId(belongId, orderById);
       }
     }
   }
@@ -331,7 +328,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
     QuType quType = changeQuestion.getQuType();
     if (quType == QuType.RADIO || quType == QuType.COMPRADIO) {
       List<QuRadio> changeQuRadios = changeQuestion.getQuRadios();
-      List<QuRadio> quRadios = new ArrayList<QuRadio>();
+      List<QuRadio> quRadios = new ArrayList<>();
       for (QuRadio changeQuRadio : changeQuRadios) {
         QuRadio quRadio = new QuRadio();
         ReflectionUtils.copyAttr(changeQuRadio, quRadio);
@@ -341,7 +338,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
       question.setQuRadios(quRadios);
     } else if (quType == QuType.CHECKBOX || quType == QuType.COMPCHECKBOX) {
       List<QuCheckbox> changeQuCheckboxs = changeQuestion.getQuCheckboxs();
-      List<QuCheckbox> quCheckboxs = new ArrayList<QuCheckbox>();
+      List<QuCheckbox> quCheckboxs = new ArrayList<>();
       for (QuCheckbox changeQuCheckbox : changeQuCheckboxs) {
         QuCheckbox quCheckbox = new QuCheckbox();
         ReflectionUtils.copyAttr(changeQuCheckbox, quCheckbox);
@@ -351,7 +348,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
       question.setQuCheckboxs(quCheckboxs);
     } else if (quType == QuType.MULTIFILLBLANK) {
       List<QuMultiFillblank> changeQuDFillbanks = changeQuestion.getQuMultiFillblanks();
-      List<QuMultiFillblank> quDFillbanks = new ArrayList<QuMultiFillblank>();
+      List<QuMultiFillblank> quDFillbanks = new ArrayList<>();
       for (QuMultiFillblank changeQuDFillbank : changeQuDFillbanks) {
         QuMultiFillblank quDFillbank = new QuMultiFillblank();
         ReflectionUtils.copyAttr(changeQuDFillbank, quDFillbank);
@@ -362,7 +359,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
     } else if (quType == QuType.SCORE) {
       //评分
       List<QuScore> changeQuScores = changeQuestion.getQuScores();
-      List<QuScore> quScores = new ArrayList<QuScore>();
+      List<QuScore> quScores = new ArrayList<>();
       for (QuScore changeQuScore : changeQuScores) {
         QuScore quScore = new QuScore();
         ReflectionUtils.copyAttr(changeQuScore, quScore);
@@ -373,7 +370,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
     } else if (quType == QuType.ORDERQU) {
       //评分
       List<QuOrderby> changeQuOrderbys = changeQuestion.getQuOrderbys();
-      List<QuOrderby> quOrderbyList = new ArrayList<QuOrderby>();
+      List<QuOrderby> quOrderbyList = new ArrayList<>();
       for (QuOrderby changeQuOrder : changeQuOrderbys) {
         QuOrderby quOrderby = new QuOrderby();
         ReflectionUtils.copyAttr(changeQuOrder, quOrderby);
@@ -450,7 +447,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
 
   @Override
   public void update(Question entity) {
-    questionDao.update(entity);
+    questionRepository.save(entity);
   }
 
   /**
@@ -461,6 +458,179 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
    */
   @Override
   public Question findOne(String quId) {
+    if (StringUtils.isBlank(quId)) {
+      Question question = new Question();
+      return questionRepository.save(question);
+    }
+
     return questionRepository.findById(quId).orElse(new Question());
+  }
+
+  private void saveQuestion(Question entity) {
+    boolean isNew = false;
+    String id = entity.getId();
+    String belongId = entity.getBelongId();
+    int orderById = entity.getOrderById();
+    //如果是新增的题目，则根据已有的题来设置排序号
+    if (id == null || "".equals(id)) {
+      isNew = true;
+    }
+
+    //保存题目的题干部分
+    questionRepository.save(entity);
+
+    //判断题目类型
+    QuType quType = entity.getQuType();
+    if (quType == QuType.RADIO || quType == QuType.COMPRADIO) {
+      saveRadio(entity);
+    } else if (quType == QuType.CHECKBOX || quType == QuType.COMPCHECKBOX) {
+      saveCheckbox(entity);
+    } else if (quType == QuType.MULTIFILLBLANK) {
+      saveMultiFillBlank(entity);
+    } else if (quType == QuType.BIGQU) {
+      saveQuBig(entity);
+    } else if (quType == QuType.SCORE) {
+      saveQuScore(entity);
+    } else if (quType == QuType.ORDERQU) {
+      saveQuOrderBy(entity);
+    }
+    //更新排序号--如果是新增
+    saveQuLogic(entity);
+    if (isNew) {
+      updateQuestionOrderId(belongId, orderById);
+    }
+  }
+
+  /**
+   * 题目逻辑保存
+   *
+   * @param entity Question
+   */
+  private void saveQuLogic(Question entity) {
+    List<QuestionLogic> logics = entity.getQuestionLogics();
+    if (logics != null) {
+      for (QuestionLogic logic : logics) {
+        String logicId = logic.getId();
+        if ("".equals(logicId)) {
+          logic.setId(null);
+        }
+        logic.setCkQuId(entity.getId());
+      }
+
+      quLogicRepository.saveAll(logics);
+    }
+  }
+
+  /**
+   * 保存评分题
+   *
+   * @param entity Question
+   */
+  private void saveQuScore(Question entity) {
+    List<QuScore> scores = entity.getQuScores();
+    for (QuScore score : scores) {
+      score.setQuId(entity.getId());
+    }
+
+    quScoreRepository.saveAll(scores);
+  }
+
+  /**
+   * 保存排序题
+   *
+   * @param entity Question
+   */
+  private void saveQuOrderBy(Question entity) {
+    List<QuOrderby> orderBys = entity.getQuOrderbys();
+    for (QuOrderby orderBy : orderBys) {
+      orderBy.setQuId(entity.getId());
+    }
+
+    quOrderByRepository.saveAll(orderBys);
+  }
+
+  /**
+   * 保存大题
+   *
+   * @param entity Question
+   */
+  private void saveQuBig(Question entity) {
+    List<Question> questions = entity.getQuestions();
+    questionRepository.save(entity);
+
+    for (Question question : questions) {
+      question.setParentQuId(entity.getId());
+      saveQuestion(question);
+    }
+  }
+
+  /**
+   * 保存单选题的单选项
+   *
+   * @param entity Question
+   */
+  private void saveRadio(Question entity) {
+    List<QuRadio> radios = entity.getQuRadios();
+    for (QuRadio radio : radios) {
+      String quRadioId = radio.getId();
+      if ("0".equals(quRadioId)) {
+        radio.setId(null);
+      }
+      radio.setQuId(entity.getId());
+    }
+
+    quRadioRepository.saveAll(radios);
+  }
+
+  /**
+   * 保存多选题选项
+   *
+   * @param entity Question
+   */
+  private void saveCheckbox(Question entity) {
+    List<QuCheckbox> checkboxes = entity.getQuCheckboxs();
+    for (QuCheckbox checkbox : checkboxes) {
+      String checkboxId = checkbox.getId();
+      if ("0".equals(checkboxId)) {
+        checkbox.setId(null);
+      }
+
+      checkbox.setQuId(entity.getId());
+    }
+
+    quCheckBoxRepository.saveAll(checkboxes);
+  }
+
+  /**
+   * 保存多项填空题选项
+   *
+   * @param entity Question
+   */
+  private void saveMultiFillBlank(Question entity) {
+    List<QuMultiFillblank> multiFillBlanks = entity.getQuMultiFillblanks();
+
+    for (QuMultiFillblank quMultiFillblank : multiFillBlanks) {
+      quMultiFillblank.setQuId(entity.getId());
+    }
+    quMultiFillBankRepository.saveAll(multiFillBlanks);
+
+    // 执行要删除的选项
+    String[] removeOptionUuIds = entity.getRemoveOptionUuIds();
+    if (removeOptionUuIds != null) {
+      quMultiFillBankRepository.deleteAllById(Lists.newArrayList(removeOptionUuIds));
+    }
+  }
+
+  /**
+   * 属性 belongId所有题目，只要大于等于orderById+1
+   *
+   * @param belongId  belongId
+   * @param orderById orderById
+   */
+  private void updateQuestionOrderId(String belongId, Integer orderById) {
+    if (StringUtils.isNotBlank(belongId)) {
+      orderById = orderById == null ? 0 : orderById;
+      questionRepository.addQuestionOrderId(belongId, orderById);
+    }
   }
 }

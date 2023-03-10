@@ -10,7 +10,6 @@ import net.diaowen.dwsurvey.entity.SurveyDetail;
 import net.diaowen.dwsurvey.entity.SurveyDirectory;
 import net.diaowen.dwsurvey.service.QuestionManager;
 import net.diaowen.dwsurvey.service.SurveyDirectoryManager;
-import net.diaowen.dwsurvey.service.SurveyStyleManager;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +39,6 @@ public class SurveyDesignController {
   private final QuestionManager questionManager;
   private final SurveyDirectoryManager surveyDirectoryManager;
   private final AccountManager accountManager;
-  private final SurveyStyleManager surveyStyleManager;
 
   @ResponseBody
   @RequestMapping("/surveyAll.do")

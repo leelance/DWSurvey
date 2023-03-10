@@ -9,12 +9,12 @@ import net.diaowen.dwsurvey.repository.QuScoreRepository;
 import net.diaowen.dwsurvey.service.QuScoreManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -39,11 +39,9 @@ public class QuScoreManagerImpl extends BaseServiceImpl<QuScore, String> impleme
 
   @Override
   public List<QuScore> findByQuId(String quId) {
-    List<QuScore> list = quScoreRepository.findByQuIdAndVisibility(quId, 1);
-    if (Objects.nonNull(list) && !list.isEmpty()) {
-      list.sort(Comparator.comparing(QuScore::getOrderById));
-    }
-    return list;
+    Specification<QuScore> spec = questionSpec(quId);
+    Sort sort = Sort.by(Sort.Direction.ASC, "orderById");
+    return quScoreRepository.findAll(spec, sort);
   }
 
   public int getOrderById(String quId) {

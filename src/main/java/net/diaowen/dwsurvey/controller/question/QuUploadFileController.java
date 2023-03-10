@@ -90,7 +90,7 @@ public class QuUploadFileController {
 		if("".equals(quId)){
 			quId=null;
 		}
-		Question entity=questionManager.getModel(quId);
+		Question entity = questionManager.findOne(quId);
 		entity.setBelongId(belongId);
 		if(quTitle!=null){
 			quTitle=URLDecoder.decode(quTitle,"utf-8");

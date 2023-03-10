@@ -9,12 +9,12 @@ import net.diaowen.dwsurvey.repository.QuOrderByRepository;
 import net.diaowen.dwsurvey.service.QuOrderbyManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -39,12 +39,9 @@ public class QuOrderbyManagerImpl extends BaseServiceImpl<QuOrderby, String> imp
 
   @Override
   public List<QuOrderby> findByQuId(String quId) {
-    List<QuOrderby> list = quOrderByRepository.findByQuIdAndVisibility(quId, 1);
-
-    if (Objects.nonNull(list) && !list.isEmpty()) {
-      list.sort(Comparator.comparing(QuOrderby::getOrderById));
-    }
-    return list;
+    Specification<QuOrderby> spec = questionSpec(quId);
+    Sort sort = Sort.by(Sort.Direction.ASC, "orderById");
+    return quOrderByRepository.findAll(spec, sort);
   }
 
   public int getOrderById(String quId) {

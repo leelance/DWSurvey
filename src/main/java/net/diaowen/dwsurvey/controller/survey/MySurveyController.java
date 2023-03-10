@@ -59,7 +59,6 @@ public class MySurveyController {
     try {
       UserDetailsImpl user = accountManager.getCurUser();
       if (user != null) {
-        surveyStatsManager.findBySurvey(id);
         SurveyDirectory survey = surveyDirectoryManager.findUniqueBy(id);
         survey = surveyAnswerManager.upAnQuNum(survey);
         return HttpResult.SUCCESS(survey);
@@ -67,7 +66,7 @@ public class MySurveyController {
         return HttpResult.buildResult(HttpStatus.NO_LOGIN);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      log.warn("===>survey detail fail: ", e);
     }
     return HttpResult.FAILURE();
   }

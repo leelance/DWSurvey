@@ -66,7 +66,7 @@ public class QuRadioController{
 		if("".equals(quId)){
 			quId=null;
 		}
-		Question entity=questionManager.getModel(quId);
+		Question entity = questionManager.findOne(quId);
 		entity.setBelongId(belongId);
 		if(quTitle!=null){
 			quTitle=URLDecoder.decode(quTitle,"utf-8");
@@ -86,8 +86,8 @@ public class QuRadioController{
 		entity.setHv(Integer.parseInt(hv));
 		entity.setRandOrder(Integer.parseInt(randOrder));
 		entity.setCellCount(Integer.parseInt(cellCount));
-		Map<String, Object> optionNameMap=WebUtils.getParametersStartingWith(request, "optionValue_");
-		List<QuRadio> quRadios=new ArrayList<QuRadio>();
+    Map<String, Object> optionNameMap = WebUtils.getParametersStartingWith(request, "optionValue_");
+    List<QuRadio> quRadios = new ArrayList<>();
 		for (String key : optionNameMap.keySet()) {
 			String optionId=request.getParameter("optionId_"+key);
 			String isNote=request.getParameter("isNote_"+key);
@@ -101,7 +101,6 @@ public class QuRadioController{
 				optionId=null;
 			}
 			quRadio.setId(optionId);
-//			quRadio.setOptionTitle(key);
 			optionNameValue=URLDecoder.decode(optionNameValue,"utf-8");
 			quRadio.setOptionName(optionNameValue);
 			quRadio.setOrderById(Integer.parseInt(key));

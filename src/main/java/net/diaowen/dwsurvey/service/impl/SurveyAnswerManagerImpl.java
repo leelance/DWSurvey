@@ -9,15 +9,19 @@ import net.diaowen.common.utils.parsehtml.HtmlUtil;
 import net.diaowen.dwsurvey.config.DWSurveyConfig;
 import net.diaowen.dwsurvey.dao.SurveyAnswerDao;
 import net.diaowen.dwsurvey.entity.*;
+import net.diaowen.dwsurvey.repository.SurveyAnswerRepository;
 import net.diaowen.dwsurvey.repository.SurveyDirectoryRepository;
 import net.diaowen.dwsurvey.service.*;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.util.FileUtil;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.Predicate;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -60,6 +64,8 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
   private AnUploadFileManager anUploadFileManager;
   @Autowired
   private SurveyDirectoryRepository surveyDirectoryRepository;
+  @Autowired
+  private SurveyAnswerRepository surveyAnswerRepository;
 
   @Override
   public void setBaseDao() {
@@ -621,11 +627,20 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
 
   @Override
   public SurveyDirectory upAnQuNum(SurveyDirectory survey) {
-    Long answerCount = surveyAnswerDao.countResult(survey.getId());
-    if (answerCount != null) {
-      survey.setAnswerNum(answerCount.intValue());
-      surveyDirectoryRepository.save(survey);
-    }
+    Specification<SurveyAnswer> spec = (root, query, cb) -> {
+      List<Predicate> predicates = new ArrayList<>();
+      predicates.add(cb.lt(root.get("handleState"), 2));
+      predicates.add(cb.equal(root.get("isEffective"), 1));
+
+      if (StringUtils.isNotBlank(survey.getId())) {
+        predicates.add(cb.equal(root.get("surveyId"), survey.getId()));
+      }
+      return cb.and(predicates.toArray(new Predicate[0]));
+    };
+
+    long answerCount = surveyAnswerRepository.count(spec);
+    survey.setAnswerNum((int) answerCount);
+    surveyDirectoryRepository.save(survey);
     return survey;
   }
 
