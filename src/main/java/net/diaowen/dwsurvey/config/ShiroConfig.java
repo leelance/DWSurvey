@@ -81,13 +81,13 @@ public class ShiroConfig {
         //登出
         map.put("/logout", "logout");
         //对所有用户认证
-        map.put("/api/dwsurvey/anon/**", "anon");
+        map.put("/api/survey/anon/**", "anon");
         map.put("/login", "authc");
         map.put("/ic/**", "user");
         map.put("/design/**", "user");
         map.put("/da/**", "user");
-        map.put("/api/dwsurvey/app/**", "user");
-        map.put("/api/dwsurvey/admin/**", "roles["+ RoleCode.DWSURVEY_SUPER_ADMIN +"]");
+        map.put("/api/survey/app/**", "user");
+        map.put("/api/survey/admin/**", "roles["+ RoleCode.DWSURVEY_SUPER_ADMIN +"]");
         //登录
 //        shiroFilterFactoryBean.setLoginUrl("/login.do");
         //首页

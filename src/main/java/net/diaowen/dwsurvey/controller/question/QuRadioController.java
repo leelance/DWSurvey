@@ -7,7 +7,6 @@ import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.entity.QuestionLogic;
 import net.diaowen.dwsurvey.service.QuRadioManager;
 import net.diaowen.dwsurvey.service.QuestionManager;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +29,7 @@ import java.util.Map;
  *
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/qu-radio")
+@RequestMapping("/api/survey/app/design/qu-radio")
 public class QuRadioController{
 	@Autowired
 	private QuestionManager questionManager;

@@ -29,7 +29,7 @@ import java.util.Map;
  *
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/qu-multi-fillblank")
+@RequestMapping("/api/survey/app/design/qu-multi-fillblank")
 public class QuMultiFillblankController{
 	@Autowired
 	private QuestionManager questionManager;

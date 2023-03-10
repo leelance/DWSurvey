@@ -1,5 +1,7 @@
 package net.diaowen.dwsurvey.controller.question;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.base.service.AccountManager;
 import net.diaowen.common.plugs.httpclient.HttpResult;
 import net.diaowen.dwsurvey.config.security.UserDetailsImpl;
@@ -10,7 +12,6 @@ import net.diaowen.dwsurvey.service.QuestionManager;
 import net.diaowen.dwsurvey.service.SurveyDirectoryManager;
 import net.diaowen.dwsurvey.service.SurveyStyleManager;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -30,26 +32,26 @@ import java.util.List;
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
+@Slf4j
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/survey-design")
+@RequiredArgsConstructor
+@RequestMapping("/api/survey/app/design/survey-design")
 public class SurveyDesignController {
+  private final QuestionManager questionManager;
+  private final SurveyDirectoryManager surveyDirectoryManager;
+  private final AccountManager accountManager;
+  private final SurveyStyleManager surveyStyleManager;
 
-  @Autowired
-  private QuestionManager questionManager;
-  @Autowired
-  private SurveyDirectoryManager surveyDirectoryManager;
-  @Autowired
-  private AccountManager accountManager;
-  @Autowired
-  private SurveyStyleManager surveyStyleManager;
-
-  @RequestMapping("/surveyAll.do")
   @ResponseBody
+  @RequestMapping("/surveyAll.do")
   public HttpResult surveyAll(String surveyId, String sid) {
     try {
+      if (log.isDebugEnabled()) {
+        log.debug("===>app design params surveyId: {}, sid: {}", surveyId, sid);
+      }
       return buildSurvey(surveyId, sid);
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("===>design survey fail: ", e);
     }
     return HttpResult.FAILURE();
   }
@@ -96,20 +98,20 @@ public class SurveyDesignController {
     SurveyDirectory survey = surveyDirectoryManager.getSurvey(surveyId);
     SurveyDetail surveyDetail = survey.getSurveyDetail();
     UserDetailsImpl user = accountManager.getCurUser();
-    if (user != null && survey != null) {
+    if (user != null) {
       String userId = user.getId();
       if (userId.equals(survey.getUserId())) {
 
         if (svyNote != null) {
-          svyNote = URLDecoder.decode(svyNote, "utf-8");
+          svyNote = URLDecoder.decode(svyNote, StandardCharsets.UTF_8.name());
           surveyDetail.setSurveyNote(svyNote);
         }
         if (svyName != null && !"".equals(svyName)) {
-          svyName = URLDecoder.decode(svyName, "utf-8");
+          svyName = URLDecoder.decode(svyName, StandardCharsets.UTF_8.name());
           survey.setSurveyName(svyName);
         }
         if (StringUtils.isNotEmpty(svyNameText)) {
-          svyNameText = URLDecoder.decode(svyNameText, "utf-8");
+          svyNameText = URLDecoder.decode(svyNameText, StandardCharsets.UTF_8.name());
           survey.setSurveyNameText(svyNameText);
         }
 
@@ -156,7 +158,6 @@ public class SurveyDesignController {
         surveyDirectoryManager.save(survey);
 
         response.getWriter().write("true");
-
       }
     }
     return null;
@@ -164,7 +165,7 @@ public class SurveyDesignController {
 
   private HttpResult buildSurvey(String surveyId, String sid) {
     //判断是否拥有权限
-    SurveyDirectory surveyDirectory = null;
+    SurveyDirectory surveyDirectory;
     if (StringUtils.isEmpty(surveyId) && StringUtils.isNotEmpty(sid)) {
       surveyDirectory = surveyDirectoryManager.getSurveyBySid(sid);
     } else {
@@ -182,7 +183,7 @@ public class SurveyDesignController {
     }
 
     if (surveyDirectory != null) {
-      List<Question> questions = questionManager.findDetails(surveyDirectory.getId(), "2");
+      List<Question> questions = questionManager.findDetails(surveyDirectory.getId(), 2);
       surveyDirectory.setQuestions(questions);
       surveyDirectory.setSurveyQuNum(questions.size());
       surveyDirectoryManager.save(surveyDirectory);

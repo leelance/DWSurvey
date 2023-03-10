@@ -50,18 +50,18 @@
 		</property>
 		<property name="filterChainDefinitions">
 			<value>
-				/api/dwsurvey/anon/security/** = anon
-				/api/dwsurvey/anon/jcap/** = anon
-				/api/dwsurvey/anon/response/** = anon
-				/login.jsp = authc
-				/ic/** = user
-				/design/** = user
-				/da/** = user
-				/api/dwsurvey/app/survey/** = roleOrFilter[aewoo]
-				/api/dwsurvey/app/** = user
-				/api/dwsurvey/admin/** = user
-				/sy/** = roles[admin]
-			</value>
+                /api/survey/anon/security/** = anon
+                /api/survey/anon/jcap/** = anon
+                /api/survey/anon/response/** = anon
+                /login.jsp = authc
+                /ic/** = user
+                /design/** = user
+                /da/** = user
+                /api/survey/app/survey/** = roleOrFilter[aewoo]
+                /api/survey/app/** = user
+                /api/survey/admin/** = user
+                /sy/** = roles[admin]
+            </value>
 		</property>
 	</bean>
 

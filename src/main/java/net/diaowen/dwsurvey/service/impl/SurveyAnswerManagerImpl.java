@@ -76,7 +76,7 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
   public List<Question> findAnswerDetail(SurveyAnswer answer) {
     String surveyId = answer.getSurveyId();
     String surveyAnswerId = answer.getId();
-    List<Question> questions = questionManager.findDetails(surveyId, "2");
+    List<Question> questions = questionManager.findDetails(surveyId, 2);
     for (Question question : questions) {
       getquestionAnswer(surveyAnswerId, question);
     }
@@ -237,7 +237,7 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
 //			page = findPage(page,cri1);
 //			int totalPage = page.getTotalPage();
       List<SurveyAnswer> answers = answerList(surveyId, 1);
-      List<Question> questions = questionManager.findDetails(surveyId, "2");
+      List<Question> questions = questionManager.findDetails(surveyId, 2);
       exportXLSTitle(exportUtil, questions);
       int answerListSize = answers.size();
       for (int j = 0; j < answerListSize; j++) {
@@ -662,7 +662,7 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
       surveyAnswerDao.save(t);
       //更新当前答卷的回答记录值
       // 得到题列表
-      List<Question> questions = questionManager.findDetails(t.getSurveyId(), "2");
+      List<Question> questions = questionManager.findDetails(t.getSurveyId(), 2);
       for (Question question : questions) {
         String quId = question.getId();
         QuType quType = question.getQuType();

@@ -37,7 +37,7 @@ import java.util.zip.ZipOutputStream;
  *
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/qu-upload-file")
+@RequestMapping("/api/survey/app/design/qu-upload-file")
 public class QuUploadFileController {
 	@Autowired
 	private QuestionManager questionManager;

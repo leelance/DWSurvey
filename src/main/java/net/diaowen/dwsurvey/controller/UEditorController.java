@@ -19,7 +19,7 @@ import java.io.PrintWriter;
  * Created by ldb on 2017/4/9.
  */
 @Controller
-@RequestMapping("/api/dwsurvey/anon/ueditor")
+@RequestMapping("/api/survey/anon/ueditor")
 public class UEditorController {
   @Autowired
   private Environment environment;

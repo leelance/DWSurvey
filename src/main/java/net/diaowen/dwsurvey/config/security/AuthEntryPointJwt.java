@@ -29,7 +29,7 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
 
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-    log.warn("Unauthorized fail: ", exception);
+    log.warn("Unauthorized[{}] fail: ", request.getRequestURI(), exception);
 
     String message;
     if (exception instanceof BadCredentialsException) {

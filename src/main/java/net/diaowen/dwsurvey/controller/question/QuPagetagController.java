@@ -27,7 +27,7 @@ import java.util.Map;
  *
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/qu-pagetag")
+@RequestMapping("/api/survey/app/design/qu-pagetag")
 public class QuPagetagController{
 	@Autowired
 	private QuestionManager questionManager;

@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/question")
+@RequestMapping("/api/survey/app/design/question")
 public class QuestionController{
 	@Autowired
 	private QuestionManager questionManager;

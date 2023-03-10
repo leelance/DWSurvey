@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/api/dwsurvey/app/answer")
+@RequestMapping("/api/survey/app/answer")
 public class MySurveyAnswerController {
 
   @Autowired

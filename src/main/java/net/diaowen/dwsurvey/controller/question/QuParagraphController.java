@@ -26,7 +26,7 @@ import java.util.Map;
  *
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/qu-paragraph")
+@RequestMapping("/api/survey/app/design/qu-paragraph")
 public class QuParagraphController{
 	@Autowired
 	private QuestionManager questionManager;

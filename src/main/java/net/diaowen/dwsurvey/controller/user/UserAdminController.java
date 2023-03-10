@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/api/dwsurvey/admin/user")
+@RequestMapping("/api/survey/admin/user")
 public class UserAdminController {
 
   @Autowired

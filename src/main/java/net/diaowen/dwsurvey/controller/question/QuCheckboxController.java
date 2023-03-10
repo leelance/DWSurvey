@@ -29,7 +29,7 @@ import java.util.Map;
  *
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/qu-checkbox")
+@RequestMapping("/api/survey/app/design/qu-checkbox")
 public class QuCheckboxController {
 	@Autowired
 	private QuestionManager questionManager;

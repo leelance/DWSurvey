@@ -28,7 +28,7 @@ import java.util.Map;
  *
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/design/qu-score")
+@RequestMapping("/api/survey/app/design/qu-score")
 public class QuScoreController{
 	@Autowired
 	private QuestionManager questionManager;

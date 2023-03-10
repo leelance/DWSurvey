@@ -156,7 +156,7 @@ public class QuestionBankManagerImpl extends BaseServiceImpl<QuestionBank, Strin
     QuestionBank questionBank = getBank(id);
     questionBank.setBankState(1);
     //更新下题目数
-    List<Question> questions = questionManager.find(id, "1");
+    List<Question> questions = questionManager.find(id, 1);
     if (questions != null) {
       questionBank.setQuNum(questions.size());
     }

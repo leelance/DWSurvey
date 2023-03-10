@@ -114,8 +114,7 @@ public class SurveyStatsManagerImpl extends BaseServiceImpl<SurveyStats, String>
    */
   @Override
   public List<Question> findFrequency(SurveyDirectory survey) {
-    List<Question> questions = questionManager.findDetails(survey.getId(),
-        "2");
+    List<Question> questions = questionManager.findDetails(survey.getId(), 2);
 
     for (Question question : questions) {
       QuType quType = question.getQuType();
@@ -222,8 +221,7 @@ public class SurveyStatsManagerImpl extends BaseServiceImpl<SurveyStats, String>
    * 单个题目频数统计分析
    */
   public List<Question> findFrequency_temp(SurveyDirectory survey) {
-    List<Question> questions = questionManager.findDetails(survey.getId(),
-        "2");
+    List<Question> questions = questionManager.findDetails(survey.getId(), 2);
 
     for (Question question : questions) {
       QuType quType = question.getQuType();
@@ -255,8 +253,7 @@ public class SurveyStatsManagerImpl extends BaseServiceImpl<SurveyStats, String>
   @Override
   @Transactional(readOnly = true)
   public List<Question> dataChart1s(SurveyDirectory survey) {
-    List<Question> questions = questionManager.findDetails(survey.getId(),
-        "2");
+    List<Question> questions = questionManager.findDetails(survey.getId(), 2);
     for (Question question : questions) {
       List<DataCross> crosses = findDataChart(question.getId());
       if (crosses != null) {

@@ -16,6 +16,7 @@ import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.entity.SurveyDetail;
 import net.diaowen.dwsurvey.entity.SurveyDirectory;
 import net.diaowen.dwsurvey.entity.SurveyStats;
+import net.diaowen.dwsurvey.repository.SurveyDetailRepository;
 import net.diaowen.dwsurvey.repository.SurveyDirectoryRepository;
 import net.diaowen.dwsurvey.service.QuestionManager;
 import net.diaowen.dwsurvey.service.SurveyDetailManager;
@@ -31,7 +32,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
 import javax.persistence.criteria.Predicate;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -59,8 +59,8 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
   private final QuestionManager questionManager;
   private final SurveyStatsManager surveyStatsManager;
   private final AccountManager accountManager;
-  private final EntityManager em;
   private final SurveyDirectoryRepository surveyDirectoryRepository;
+  private final SurveyDetailRepository surveyDetailRepository;
 
   @Override
   public void setBaseDao() {
@@ -82,12 +82,12 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
         sId = RandomUtils.randomStr(6, 12);
         t.setSid(sId);
       }
-      surveyDirectoryDao.save(t);
+      surveyDirectoryRepository.save(t);
       //保存SurveyDirectory
       if (t.getDirType() == 2) {
         SurveyDetail surveyDetailTemp = t.getSurveyDetail();
 
-        SurveyDetail surveyDetail = surveyDetailManager.getBySurveyId(id);
+        SurveyDetail surveyDetail = surveyDetailRepository.findByDirId(t.getId());
         if (surveyDetail != null) {
           if (surveyDetailTemp != null) {
             surveyDetail.setSurveyNote(surveyDetailTemp.getSurveyNote());
@@ -97,7 +97,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
           surveyDetail.setSurveyNote("非常感谢您的参与！如有涉及个人信息，我们将严格保密。");
         }
         surveyDetail.setDirId(t.getId());
-        surveyDetailManager.save(surveyDetail);
+        surveyDetailRepository.save(surveyDetail);
       }
     }
   }
@@ -109,7 +109,8 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
       sId = RandomUtils.randomStr(6, 12);
       t.setSid(sId);
     }
-    surveyDirectoryDao.save(t);
+
+    surveyDirectoryRepository.save(t);
   }
 
   /**
@@ -136,8 +137,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
 
   @Override
   public SurveyDirectory getSurveyBySid(String sid) {
-    Criterion criterion = Restrictions.eq("sid", sid);
-    SurveyDirectory surveyDirectory = surveyDirectoryDao.findUnique(criterion);
+    SurveyDirectory surveyDirectory = surveyDirectoryRepository.findBySid(sid);
     getSurveyDetail(surveyDirectory.getId(), surveyDirectory);
     return surveyDirectory;
   }
@@ -147,7 +147,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     if (id == null || "".equals(id)) {
       return new SurveyDirectory();
     }
-    SurveyDirectory directory = get(id);
+    SurveyDirectory directory = surveyDirectoryRepository.findById(id).orElse(new SurveyDirectory());
     getSurveyDetail(id, directory);
     return directory;
   }
@@ -157,7 +157,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     if (id == null || "".equals(id)) {
       return new SurveyDirectory();
     }
-    SurveyDirectory directory = surveyDirectoryDao.findUniqueBy("id", id);
+    SurveyDirectory directory = surveyDirectoryRepository.findById(id).orElse(new SurveyDirectory());
     getSurveyDetail(id, directory);
     return directory;
   }
@@ -176,11 +176,11 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
   public void getSurveyDetail(String id, SurveyDirectory directory) {
     String surveyDetailId = directory.getSurveyDetailId();
     SurveyDetail surveyDetail = null;
-    if (surveyDetailId != null) {
-      surveyDetail = surveyDetailManager.get(surveyDetailId);
+    if (StringUtils.isNotBlank(surveyDetailId)) {
+      surveyDetail = surveyDetailRepository.findById(surveyDetailId).orElse(new SurveyDetail());
     }
     if (surveyDetail == null) {
-      surveyDetail = surveyDetailManager.getBySurveyId(id);
+      surveyDetail = surveyDetailRepository.findByDirId(id);
     }
     if (surveyDetail == null) {
       surveyDetail = new SurveyDetail();
@@ -190,7 +190,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
 
   @Override
   public void upSurveyData(SurveyDirectory entity) {
-    List<Question> questions = questionManager.findDetails(entity.getId(), "2");
+    List<Question> questions = questionManager.findDetails(entity.getId(), 2);
     if (questions != null) {
       int anItemLeastNum = 0;
       for (Question question : questions) {
@@ -236,7 +236,8 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     //设为不可见
     SurveyDirectory parentDirectory = get(id);
     parentDirectory.setVisibility(0);
-    surveyDirectoryDao.save(parentDirectory);
+    surveyDirectoryRepository.save(parentDirectory);
+
     Criterion criterion = Restrictions.eq("parentId", parentDirectory.getId());
     List<SurveyDirectory> directories = findList(criterion);
     if (directories != null) {
@@ -554,13 +555,11 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
   }
 
   @Override
-  public SurveyDirectory createBySurvey(String fromBankId, String surveyName,
-                                        String tag) {//new
-    SurveyDirectory surveyDirectory = buildCopyObj(fromBankId, surveyName,
-        tag);
+  public SurveyDirectory createBySurvey(String fromBankId, String surveyName, String tag) {
+    SurveyDirectory surveyDirectory = buildCopyObj(fromBankId, surveyName, tag);
     saveUserSurvey(surveyDirectory);
     String belongId = surveyDirectory.getId();
-    List<Question> questions = questionManager.find(fromBankId, tag);
+    List<Question> questions = questionManager.find(fromBankId, Integer.parseInt(tag));
     questionManager.saveBySurvey(belongId, 2, questions);
     return surveyDirectory;
   }
@@ -622,10 +621,10 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
 
       String infoJsonString = mapper.writeValueAsString(HttpResult.SUCCESS(surveyDirectory));
       String savePath = File.separator + "file" + File.separator + "survey" + File.separator + sid + File.separator;
-      ;
+
       writerJson(infoJsonString, savePath, sid + "_info.json");
 
-      List<Question> questions = questionManager.findDetails(surveyDirectory.getId(), "2");
+      List<Question> questions = questionManager.findDetails(surveyDirectory.getId(), 2);
       surveyDirectory.setQuestions(questions);
       surveyDirectory.setSurveyQuNum(questions.size());
       String jsonString = mapper.writeValueAsString(HttpResult.SUCCESS(surveyDirectory));

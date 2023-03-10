@@ -47,7 +47,7 @@ import java.util.Map;
  * http://dwsurvey.net
  */
 @Controller
-@RequestMapping("/api/dwsurvey/anon/response")
+@RequestMapping("/api/survey/anon/response")
 public class ResponseController {
   @Autowired
   private SurveyAnswerManager surveyAnswerManager;

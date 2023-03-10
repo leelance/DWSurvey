@@ -14,7 +14,7 @@ import java.io.ByteArrayOutputStream;
 
 @Controller
 //@RequestMapping("/jcap")
-@RequestMapping("/api/dwsurvey/anon/jcap")
+@RequestMapping("/api/survey/anon/jcap")
 public class JcaptchaController {
 
 	@Autowired

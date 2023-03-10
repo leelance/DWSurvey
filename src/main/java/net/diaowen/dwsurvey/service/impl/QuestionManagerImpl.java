@@ -1,5 +1,7 @@
 package net.diaowen.dwsurvey.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.QuType;
 import net.diaowen.common.base.service.AccountManager;
 import net.diaowen.common.service.BaseServiceImpl;
@@ -7,19 +9,18 @@ import net.diaowen.common.utils.ReflectionUtils;
 import net.diaowen.dwsurvey.config.security.UserDetailsImpl;
 import net.diaowen.dwsurvey.dao.QuestionDao;
 import net.diaowen.dwsurvey.entity.*;
+import net.diaowen.dwsurvey.repository.QuestionRepository;
+import net.diaowen.dwsurvey.repository.SurveyDirectoryRepository;
 import net.diaowen.dwsurvey.service.*;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -30,33 +31,25 @@ import java.util.List;
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
+@Slf4j
+@RequiredArgsConstructor
 @Service("questionManager")
 public class QuestionManagerImpl extends BaseServiceImpl<Question, String> implements QuestionManager {
-
-  @Autowired
-  private QuestionDao questionDao;
-  @Autowired
-  private QuCheckboxManager quCheckboxManager;
-  @Autowired
-  private QuRadioManager quRadioManager;
-  @Autowired
-  private QuMultiFillblankManager quMultiFillblankManager;
-  @Autowired
-  private QuScoreManager quScoreManager;
-  @Autowired
-  private QuOrderbyManager quOrderbyManager;
-  @Autowired
-  private QuestionLogicManager questionLogicManager;
-  @Autowired
-  private AccountManager accountManager;
-  @Autowired
-  private SurveyDirectoryManager surveyDirectoryManager;
+  private final QuestionDao questionDao;
+  private final QuCheckboxManager quCheckboxManager;
+  private final QuRadioManager quRadioManager;
+  private final QuMultiFillblankManager quMultiFillblankManager;
+  private final QuScoreManager quScoreManager;
+  private final QuOrderbyManager quOrderbyManager;
+  private final QuestionLogicManager questionLogicManager;
+  private final AccountManager accountManager;
+  private final QuestionRepository questionRepository;
+  private final SurveyDirectoryRepository surveyDirectoryRepository;
 
   @Override
   public void setBaseDao() {
     this.baseDao = questionDao;
   }
-
 
   /**
    * 所有修改，新增题的入口 方法
@@ -67,48 +60,32 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
   public void save(Question question) {
     UserDetailsImpl user = accountManager.getCurUser();
     if (user != null) {
-      SurveyDirectory survey = surveyDirectoryManager.getSurvey(question.getBelongId());
-      if (user.getId().equals(survey.getUserId())) {
-        String uuid = question.getId();
-        if (uuid == null || "".equals(uuid)) {
-          question.setId(null);
+      surveyDirectoryRepository.findById(question.getBelongId()).ifPresent(survey -> {
+        if (user.getId().equals(survey.getUserId())) {
+          String uuid = question.getId();
+          if (uuid == null || "".equals(uuid)) {
+            question.setId(null);
+          }
+          questionRepository.save(question);
         }
-//				question.setUserUuid(user.getId());
-        questionDao.save(question);
-      }
+      });
     }
   }
 
 
-  /**************************************************************************/
   /**
    * 依据条件得到符合条件的题列表，不包含选项信息   用于列表显示
    *
    * @param tag 1题库  2问卷
-   * @return
+   * @return List<Question>
    */
   @Override
-  public List<Question> find(String belongId, String tag) {
-		/*PageDto<Question> page=new PageDto<Question>();
-		page.setOrderBy("orderById");
-		page.setOrderDir("asc");
-
-		List<PropertyFilter> filters=new ArrayList<PropertyFilter>();
-		filters.add(new PropertyFilter("EQS_belongId", belongId));
-		filters.add(new PropertyFilter("EQI_tag", tag));
-		filters.add(new PropertyFilter("NEI_quTag", "3"));
-		return findAll(page, filters);*/
-
-    CriteriaBuilder criteriaBuilder = questionDao.getSession().getCriteriaBuilder();
-    CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(Question.class);
-    Root root = criteriaQuery.from(Question.class);
-    criteriaQuery.select(root);
-    Predicate eqQuId = criteriaBuilder.equal(root.get("belongId"), belongId);
-    Predicate eqTag = criteriaBuilder.equal(root.get("tag"), tag);
-    Predicate eqQuTag = criteriaBuilder.notEqual(root.get("quTag"), 3);
-    criteriaQuery.where(eqQuId, eqTag, eqQuTag);
-    criteriaQuery.orderBy(criteriaBuilder.asc(root.get("orderById")));
-    return questionDao.findAll(criteriaQuery);
+  public List<Question> find(String belongId, int tag) {
+    List<Question> list = questionRepository.findByBelongIdAndTagAndQuTagNot(belongId, tag, 3);
+    if (Objects.nonNull(list) && !list.isEmpty()) {
+      list.sort(Comparator.comparing(Question::getOrderById));
+    }
+    return list;
   }
 
   /**
@@ -118,7 +95,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
    * @return
    */
   @Override
-  public List<Question> findDetails(String belongId, String tag) {
+  public List<Question> findDetails(String belongId, int tag) {
     List<Question> questions = find(belongId, tag);
     for (Question question : questions) {
       getQuestionOption(question);
@@ -154,8 +131,8 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
       List<QuScore> quScores = quScoreManager.findByQuId(quId);
       question.setQuScores(quScores);
     } else if (quType == QuType.ORDERQU) {
-      List<QuOrderby> quOrderbys = quOrderbyManager.findByQuId(quId);
-      question.setQuOrderbys(quOrderbys);
+      List<QuOrderby> orderBy = quOrderbyManager.findByQuId(quId);
+      question.setQuOrderbys(orderBy);
     }
     List<QuestionLogic> questionLogics = questionLogicManager.findByCkQuId(quId);
     question.setQuestionLogics(questionLogics);
@@ -466,7 +443,7 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
 
   @Override
   public Question getDetail(String quId) {
-    Question question = get(quId);
+    Question question = questionRepository.findById(quId).orElse(new Question());
     getQuestionOption(question);
     return question;
   }
@@ -474,5 +451,16 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
   @Override
   public void update(Question entity) {
     questionDao.update(entity);
+  }
+
+  /**
+   * 根据quId查询题目记录
+   *
+   * @param quId quId
+   * @return Question
+   */
+  @Override
+  public Question findOne(String quId) {
+    return questionRepository.findById(quId).orElse(new Question());
   }
 }

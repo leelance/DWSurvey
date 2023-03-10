@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
  * http://dwsurvey.net
  */
 @Controller
-@RequestMapping("/api/dwsurvey/app/user")
+@RequestMapping("/api/survey/app/user")
 public class UserController {
 
   @Autowired
