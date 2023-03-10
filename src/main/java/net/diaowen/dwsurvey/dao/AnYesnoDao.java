@@ -1,26 +1,24 @@
 package net.diaowen.dwsurvey.dao;
 
-import java.util.List;
-
 import net.diaowen.common.dao.BaseDao;
 import net.diaowen.dwsurvey.entity.AnYesno;
 import net.diaowen.dwsurvey.entity.DataCross;
 import net.diaowen.dwsurvey.entity.Question;
 
+import java.util.List;
+
 /**
  * 是非题 interface
- * @author KeYuan(keyuan258@gmail.com)
  *
+ * @author KeYuan(keyuan258 @ gmail.com)
+ * <p>
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
- *
  */
-public interface AnYesnoDao extends BaseDao<AnYesno, String>{
+public interface AnYesnoDao extends BaseDao<AnYesno, String> {
 
-	public void findGroupStats(Question question);
+  List<DataCross> findStatsDataCross(Question rowQuestion, Question colQuestion);
 
-	public List<DataCross> findStatsDataCross(Question rowQuestion, Question colQuestion);
-
-	public List<DataCross> findStatsDataChart(Question question);
+  List<DataCross> findStatsDataChart(Question question);
 
 }

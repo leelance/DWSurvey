@@ -1,24 +1,20 @@
 package net.diaowen.dwsurvey.dao.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.diaowen.dwsurvey.dao.AnRadioDao;
-import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.common.QuType;
-import net.diaowen.dwsurvey.entity.QuRadio;
+import net.diaowen.common.dao.BaseDaoImpl;
+import net.diaowen.dwsurvey.dao.AnRadioDao;
+import net.diaowen.dwsurvey.entity.*;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 
-import net.diaowen.common.dao.BaseDaoImpl;
-import net.diaowen.dwsurvey.entity.AnRadio;
-import net.diaowen.dwsurvey.entity.DataCross;
-import net.diaowen.dwsurvey.entity.QuCheckbox;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 单选题 dao
- * @author keyuan(keyuan258@gmail.com)
  *
+ * @author keyuan(keyuan258 @ gmail.com)
+ * <p>
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
@@ -26,183 +22,161 @@ import net.diaowen.dwsurvey.entity.QuCheckbox;
 @Repository
 public class AnRadioDaoImpl extends BaseDaoImpl<AnRadio, String> implements AnRadioDao {
 
-	@Override
-	public void findGroupStats(Question question) {
+  @Override
+  public List<DataCross> findStatsDataCross(Question rowQuestion,
+                                            Question colQuestion) {
+    List<DataCross> dataCrosses = new ArrayList<DataCross>();
+    List<QuRadio> rowList = rowQuestion.getQuRadios();
 
-		String sql="select qu_item_id,count(qu_item_id) count from t_an_radio where visibility=1 and  qu_id=? GROUP BY qu_item_id";
-		List<Object[]> list=this.getSession().createSQLQuery(sql).setParameter(1,question.getId()).list();
-		List<QuRadio> quRadios=question.getQuRadios();
+    Session session = this.getSession();
 
-		int count=0;
-		for (QuRadio quRadio : quRadios) {
-			String quRadioId=quRadio.getId();
-			for (Object[] objects : list) {
-				if(quRadioId.equals(objects[0].toString())){
-					int anCount=Integer.parseInt(objects[1].toString());
-					count+=anCount;
-					quRadio.setAnCount(anCount);
-					continue;
-				}
-			}
-		}
-		question.setAnCount(count);
-	}
+    String rowTab = " t_an_radio t1 ";
+    String colTab = "";
+    String groupSql = "";
+    String columnSql = "";
+    String whereSql = " where t1.qu_id=? " +
+        " and t2.qu_id=? " +
+        " and t1.belong_answer_id=t2.belong_answer_id GROUP BY ";
+    String sql = "";
+    QuType colQuType = colQuestion.getQuType();
 
-	@Override
-	public List<DataCross> findStatsDataCross(Question rowQuestion,
-                                              Question colQuestion) {
-		List<DataCross> dataCrosses=new ArrayList<DataCross>();
-		List<QuRadio> rowList=rowQuestion.getQuRadios();
+    if (colQuType == QuType.YESNO) {//是非题与是非题
+      colTab = " t_an_yesno t2 ";
+      groupSql = " t1.qu_item_id,t2.yesno_answer ";
+      sql = "select " + groupSql + ",count(*) from " + rowTab + "," + colTab + whereSql + groupSql;
 
-		Session session=this.getSession();
+      List<Object[]> objects = session.createSQLQuery(sql).setParameter(1, rowQuestion.getId()).setParameter(1, colQuestion.getId()).list();
 
-		String rowTab=" t_an_radio t1 ";
-		String colTab="";
-		String groupSql="";
-		String columnSql="";
-		String whereSql=" where t1.qu_id=? "+
-							" and t2.qu_id=? "+
-							" and t1.belong_answer_id=t2.belong_answer_id GROUP BY ";
-		String sql="";
-		QuType colQuType=colQuestion.getQuType();
+      List<String> colList = new ArrayList<String>();
+      colList.add(colQuestion.getYesnoOption().getTrueValue());
+      colList.add(colQuestion.getYesnoOption().getFalseValue());
 
-		if(colQuType==QuType.YESNO){//是非题与是非题
-			colTab=" t_an_yesno t2 ";
-			groupSql=" t1.qu_item_id,t2.yesno_answer ";
-			sql="select "+groupSql+",count(*) from "+rowTab+","+colTab+whereSql+groupSql;
+      for (QuRadio quRadio : rowList) {
+        DataCross rowDataCross = new DataCross();
+        String rowName = quRadio.getOptionName();
+        String rowQuItemId = quRadio.getId();
+        rowDataCross.setOptionName(rowName);
+        List<DataCross> colDataCrosses = rowDataCross.getColDataCrosss();
+        for (String col : colList) {
+          DataCross colDataCross = new DataCross();
+          colDataCross.setOptionName(col);
+          for (Object[] objs : objects) {
 
-			List<Object[]> objects=session.createSQLQuery(sql).setParameter(1, rowQuestion.getId()).setParameter(1, colQuestion.getId()).list();
+            String anRowQuItemId = objs[0].toString();
+            String colYesno_answer = objs[1].toString();
+            int objCount = Integer.parseInt(objs[2].toString());
 
-			List<String> colList=new ArrayList<String>();
-			colList.add(colQuestion.getYesnoOption().getTrueValue());
-			colList.add(colQuestion.getYesnoOption().getFalseValue());
+            if (rowQuItemId.equals(anRowQuItemId) && col.equals(colYesno_answer)) {
+              colDataCross.setCount(objCount);
+              break;
+            }
+          }
+          colDataCrosses.add(colDataCross);
+        }
+        dataCrosses.add(rowDataCross);
+      }
 
-			for (QuRadio quRadio : rowList) {
-				DataCross rowDataCross=new DataCross();
-				String rowName=quRadio.getOptionName();
-				String rowQuItemId=quRadio.getId();
-				rowDataCross.setOptionName(rowName);
-				List<DataCross> colDataCrosses=rowDataCross.getColDataCrosss();
-					for (String col : colList) {
-						DataCross colDataCross=new DataCross();
-						colDataCross.setOptionName(col);
-							for (Object[] objs : objects) {
+    } else if (colQuType == QuType.RADIO || colQuType == QuType.COMPRADIO) {//是非题与单选题
+      colTab = " t_an_radio t2 ";
+      columnSql = " t1.qu_item_id as quItemId1, t2.qu_item_id as quItemId2 ";
+      groupSql = " t1.qu_item_id,t2.qu_item_id ";
+      sql = "select " + columnSql + ",count(*) from " + rowTab + "," + colTab + whereSql + groupSql;
 
-								String anRowQuItemId=objs[0].toString();
-								String colYesno_answer=objs[1].toString();
-								int objCount=Integer.parseInt(objs[2].toString());
+      List<Object[]> objects = session.createSQLQuery(sql).setParameter(1, rowQuestion.getId()).setParameter(1, colQuestion.getId()).list();
 
-								if(rowQuItemId.equals(anRowQuItemId) && col.equals(colYesno_answer)){
-									colDataCross.setCount(objCount);
-									break;
-								}
-							}
-							colDataCrosses.add(colDataCross);
-					}
-					dataCrosses.add(rowDataCross);
-			}
+      List<QuRadio> quRadios = colQuestion.getQuRadios();
 
-		}else if(colQuType==QuType.RADIO  || colQuType==QuType.COMPRADIO){//是非题与单选题
-			colTab=" t_an_radio t2 ";
-			columnSql=" t1.qu_item_id as quItemId1, t2.qu_item_id as quItemId2 ";
-			groupSql=" t1.qu_item_id,t2.qu_item_id ";
-			sql="select "+columnSql+",count(*) from "+rowTab+","+colTab+whereSql+groupSql;
+      for (QuRadio rowQuRadio : rowList) {
+        DataCross rowDataCross = new DataCross();
+        String rowName = rowQuRadio.getOptionName();
+        String rowQuItemId = rowQuRadio.getId();
+        rowDataCross.setOptionName(rowName);
+        List<DataCross> colDataCrosses = rowDataCross.getColDataCrosss();
+        for (QuRadio quRadio : quRadios) {
+          DataCross colDataCross = new DataCross();
+          colDataCross.setOptionName(quRadio.getOptionName());
+          String quRadioId = quRadio.getId();
 
-			List<Object[]> objects=session.createSQLQuery(sql).setParameter(1, rowQuestion.getId()).setParameter(1, colQuestion.getId()).list();
+          for (Object[] objs : objects) {
+            String anRowQuItemId = objs[0].toString();
+            String anColQuItemId = objs[1].toString();
+            int objCount = Integer.parseInt(objs[2].toString());
 
-			List<QuRadio> quRadios=colQuestion.getQuRadios();
+            if (rowQuItemId.equals(anRowQuItemId) && quRadioId.equals(anColQuItemId)) {
+              colDataCross.setCount(objCount);
+              break;
+            }
+          }
+          colDataCrosses.add(colDataCross);
+        }
+        dataCrosses.add(rowDataCross);
+      }
 
-			for (QuRadio rowQuRadio : rowList) {
-				DataCross rowDataCross=new DataCross();
-				String rowName=rowQuRadio.getOptionName();
-				String rowQuItemId=rowQuRadio.getId();
-				rowDataCross.setOptionName(rowName);
-				List<DataCross> colDataCrosses=rowDataCross.getColDataCrosss();
-					for (QuRadio quRadio : quRadios) {
-						DataCross colDataCross=new DataCross();
-						colDataCross.setOptionName(quRadio.getOptionName());
-						String quRadioId=quRadio.getId();
+    } else if (colQuType == QuType.CHECKBOX || colQuType == QuType.COMPCHECKBOX) {//是非题与多选题
+      colTab = " t_an_checkbox t2 ";
+      columnSql = " t1.qu_item_id as quItemId1, t2.qu_item_id as quItemId2 ";
+      groupSql = " t1.qu_item_id, t2.qu_item_id ";
+      sql = "select " + columnSql + ",count(*) from " + rowTab + "," + colTab + whereSql + groupSql;
 
-							for (Object[] objs : objects) {
-								String anRowQuItemId=objs[0].toString();
-								String anColQuItemId=objs[1].toString();
-								int objCount=Integer.parseInt(objs[2].toString());
+      List<Object[]> objects = session.createSQLQuery(sql).setParameter(1, rowQuestion.getId()).setParameter(1, colQuestion.getId()).list();
 
-								if(rowQuItemId.equals(anRowQuItemId) && quRadioId.equals(anColQuItemId)){
-									colDataCross.setCount(objCount);
-									break;
-								}
-							}
-							colDataCrosses.add(colDataCross);
-					}
-					dataCrosses.add(rowDataCross);
-			}
+      List<QuCheckbox> quCheckboxs = colQuestion.getQuCheckboxs();
 
-		}else if(colQuType==QuType.CHECKBOX || colQuType==QuType.COMPCHECKBOX){//是非题与多选题
-			colTab=" t_an_checkbox t2 ";
-			columnSql=" t1.qu_item_id as quItemId1, t2.qu_item_id as quItemId2 ";
-			groupSql=" t1.qu_item_id, t2.qu_item_id ";
-			sql="select "+columnSql+",count(*) from "+rowTab+","+colTab+whereSql+groupSql;
+      for (QuRadio rowQuRadio : rowList) {
+        DataCross rowDataCross = new DataCross();
+        String rowName = rowQuRadio.getOptionName();
+        String rowQuItemId = rowQuRadio.getId();
+        rowDataCross.setOptionName(rowName);
+        List<DataCross> colDataCrosses = rowDataCross.getColDataCrosss();
 
-			List<Object[]> objects=session.createSQLQuery(sql).setParameter(1, rowQuestion.getId()).setParameter(1, colQuestion.getId()).list();
+        for (QuCheckbox quCheckbox : quCheckboxs) {
+          DataCross colDataCross = new DataCross();
+          colDataCross.setOptionName(quCheckbox.getOptionName());
+          String colQuCheckboxId = quCheckbox.getId();
+          for (Object[] objs : objects) {
 
-			List<QuCheckbox> quCheckboxs=colQuestion.getQuCheckboxs();
+            String anRowQuItemId = objs[0].toString();
+            String anColQuItemId = objs[1].toString();
 
-			for (QuRadio rowQuRadio : rowList) {
-				DataCross rowDataCross=new DataCross();
-				String rowName=rowQuRadio.getOptionName();
-				String rowQuItemId=rowQuRadio.getId();
-				rowDataCross.setOptionName(rowName);
-				List<DataCross> colDataCrosses=rowDataCross.getColDataCrosss();
+            int objCount = Integer.parseInt(objs[2].toString());
+            if (rowQuItemId.equals(anRowQuItemId) && colQuCheckboxId.equals(anColQuItemId)) {
+              colDataCross.setCount(objCount);
+              break;
+            }
+          }
+          colDataCrosses.add(colDataCross);
+        }
+        dataCrosses.add(rowDataCross);
+      }
+    }
+    return dataCrosses;
+  }
 
-				for (QuCheckbox quCheckbox : quCheckboxs) {
-						DataCross colDataCross=new DataCross();
-						colDataCross.setOptionName(quCheckbox.getOptionName());
-						String colQuCheckboxId=quCheckbox.getId();
-							for (Object[] objs : objects) {
+  @Override
+  public List<DataCross> findStatsDataChart(Question question) {
+    List<DataCross> crosses = new ArrayList<DataCross>();
+    String sql = "select qu_item_id,count(*) from t_an_radio where qu_id=? GROUP BY qu_item_id";
 
-								String anRowQuItemId=objs[0].toString();
-								String anColQuItemId=objs[1].toString();
+    String quId = question.getId();
+    List<Object[]> list = this.getSession().createSQLQuery(sql).setParameter(1, quId).list();
 
-								int objCount=Integer.parseInt(objs[2].toString());
-								if(rowQuItemId.equals(anRowQuItemId) && colQuCheckboxId.equals(anColQuItemId)){
-									colDataCross.setCount(objCount);
-									break;
-								}
-							}
-							colDataCrosses.add(colDataCross);
-					}
-					dataCrosses.add(rowDataCross);
-			}
-		}
-		return dataCrosses;
-	}
-
-	@Override
-	public List<DataCross> findStatsDataChart(Question question) {
-		List<DataCross> crosses=new ArrayList<DataCross>();
-		String sql="select qu_item_id,count(*) from t_an_radio where qu_id=? GROUP BY qu_item_id";
-
-		String quId=question.getId();
-		List<Object[]> list=this.getSession().createSQLQuery(sql).setParameter(1, quId).list();
-
-		List<QuRadio> quRadios=question.getQuRadios();
-		for (QuRadio quRadio : quRadios) {
-			String quItemId=quRadio.getId();
-			String optionName=quRadio.getOptionName();
-			DataCross dataCross=new DataCross();
-			dataCross.setOptionName(optionName);
-			for (Object[] objects : list) {
-				String anQuItemId=objects[0].toString();
-				int count=Integer.parseInt(objects[1].toString());
-				if(quItemId.equals(anQuItemId)){
-					dataCross.setCount(count);
-					break;
-				}
-			}
-			crosses.add(dataCross);
-		}
-		return crosses;
-	}
+    List<QuRadio> quRadios = question.getQuRadios();
+    for (QuRadio quRadio : quRadios) {
+      String quItemId = quRadio.getId();
+      String optionName = quRadio.getOptionName();
+      DataCross dataCross = new DataCross();
+      dataCross.setOptionName(optionName);
+      for (Object[] objects : list) {
+        String anQuItemId = objects[0].toString();
+        int count = Integer.parseInt(objects[1].toString());
+        if (quItemId.equals(anQuItemId)) {
+          dataCross.setCount(count);
+          break;
+        }
+      }
+      crosses.add(dataCross);
+    }
+    return crosses;
+  }
 
 }

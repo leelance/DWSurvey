@@ -10,7 +10,8 @@ import net.diaowen.common.utils.ReflectionUtils;
 import net.diaowen.dwsurvey.config.security.UserDetailsImpl;
 import net.diaowen.dwsurvey.dao.QuestionDao;
 import net.diaowen.dwsurvey.entity.*;
-import net.diaowen.dwsurvey.repository.*;
+import net.diaowen.dwsurvey.repository.question.*;
+import net.diaowen.dwsurvey.repository.survey.SurveyDirectoryRepository;
 import net.diaowen.dwsurvey.service.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.Criterion;
@@ -100,8 +101,9 @@ public class QuestionManagerImpl extends BaseServiceImpl<Question, String> imple
   /**
    * 查出指定条件下的所有题，及每一题内容的选项   用于展示试卷,如预览,答卷,查看
    *
-   * @param tag
-   * @return
+   * @param tag      tag
+   * @param belongId belongId
+   * @return List<Question>
    */
   @Override
   public List<Question> findDetails(String belongId, int tag) {

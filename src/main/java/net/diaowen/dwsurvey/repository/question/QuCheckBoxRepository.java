@@ -1,4 +1,4 @@
-package net.diaowen.dwsurvey.repository;
+package net.diaowen.dwsurvey.repository.question;
 
 import net.diaowen.dwsurvey.entity.QuCheckbox;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

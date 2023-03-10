@@ -8,17 +8,18 @@ import java.util.List;
 
 /**
  * 填空题
- * @author keyuan(keyuan258@gmail.com)
  *
+ * @author keyuan(keyuan258 @ gmail.com)
+ * <p>
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
 public interface AnUploadFileManager extends BaseService<AnUplodFile, String> {
 
-	public List<AnUplodFile> findAnswer(String belongAnswerId, String quId);
+  List<AnUplodFile> findAnswer(String belongAnswerId, String quId);
 
-	public void findGroupStats(Question question);
+  void findGroupStats(Question question);
 
-	public List<AnUplodFile> findAnswer(String belongAnswerId);
+  List<AnUplodFile> findAnswer(String belongAnswerId);
 
 }

@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.QuOrderbyDao;
 import net.diaowen.dwsurvey.entity.QuOrderby;
-import net.diaowen.dwsurvey.repository.QuOrderByRepository;
+import net.diaowen.dwsurvey.repository.question.QuOrderByRepository;
 import net.diaowen.dwsurvey.service.QuOrderbyManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;

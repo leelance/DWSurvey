@@ -1,27 +1,25 @@
 package net.diaowen.dwsurvey.dao;
 
-import java.util.List;
-
 import net.diaowen.common.dao.BaseDao;
 import net.diaowen.dwsurvey.entity.AnRadio;
-import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.entity.DataCross;
+import net.diaowen.dwsurvey.entity.Question;
+
+import java.util.List;
 
 /**
  * 单选题 interface
- * @author KeYuan(keyuan258@gmail.com)
  *
+ * @author KeYuan(keyuan258 @ gmail.com)
+ * <p>
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
- *
  */
 public interface AnRadioDao extends BaseDao<AnRadio, String> {
 
-	public void findGroupStats(Question question);
 
-	public List<DataCross> findStatsDataCross(Question rowQuestion,
-                                              Question colQuestion);
+  List<DataCross> findStatsDataCross(Question rowQuestion, Question colQuestion);
 
-	public List<DataCross> findStatsDataChart(Question question);
+  List<DataCross> findStatsDataChart(Question question);
 
 }

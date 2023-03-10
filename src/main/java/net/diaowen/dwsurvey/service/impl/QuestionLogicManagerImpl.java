@@ -3,7 +3,7 @@ package net.diaowen.dwsurvey.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.dwsurvey.entity.QuestionLogic;
-import net.diaowen.dwsurvey.repository.QuLogicRepository;
+import net.diaowen.dwsurvey.repository.question.QuLogicRepository;
 import net.diaowen.dwsurvey.service.QuestionLogicManager;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package net.diaowen.dwsurvey.repository;
+package net.diaowen.dwsurvey.repository.survey;
 
 import net.diaowen.dwsurvey.entity.SurveyDetail;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

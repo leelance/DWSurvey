@@ -107,23 +107,22 @@ public class SurveyStatsManagerImpl extends BaseServiceImpl<SurveyStats, String>
 
     for (Question question : questions) {
       QuType quType = question.getQuType();
-
-      if (QuType.YESNO == quType) {// 是非题
+      // 是非题
+      if (QuType.YESNO == quType) {
         anYesnoManager.findGroupStats(question);
-      } else if (QuType.RADIO == quType || QuType.COMPRADIO == quType) {// 单选
+      } else if (QuType.RADIO == quType || QuType.COMPRADIO == quType) {
         anRadioManager.findGroupStats(question);
-      } else if (QuType.CHECKBOX == quType
-          || QuType.COMPCHECKBOX == quType) {// 多选 复合多选
+      } else if (QuType.CHECKBOX == quType || QuType.COMPCHECKBOX == quType) {
         anCheckboxManager.findGroupStats(question);
-      } else if (QuType.FILLBLANK == quType) {// 填空题
+      } else if (QuType.FILLBLANK == quType) {
         anFillblankManager.findGroupStats(question);
-      } else if (QuType.ANSWER == quType) {// 多行填空题
+      } else if (QuType.ANSWER == quType) {
         anAnswerManager.findGroupStats(question);
-      } else if (QuType.MULTIFILLBLANK == quType) {// 组合填空
+      } else if (QuType.MULTIFILLBLANK == quType) {
         anDFillblankManager.findGroupStats(question);
-      } else if (QuType.ENUMQU == quType) {// 枚举题
+      } else if (QuType.ENUMQU == quType) {
         anEnumquManager.findGroupStats(question);
-      } else if (QuType.SCORE == quType) {// 评分题
+      } else if (QuType.SCORE == quType) {
         anScoreManager.findGroupStats(question);
       } else if (QuType.ORDERQU == quType) {
         anOrderManager.findGroupStats(question);

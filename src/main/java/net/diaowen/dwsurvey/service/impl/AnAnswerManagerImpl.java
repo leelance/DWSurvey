@@ -1,24 +1,27 @@
 package net.diaowen.dwsurvey.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.AnAnswerDao;
 import net.diaowen.dwsurvey.entity.AnAnswer;
 import net.diaowen.dwsurvey.entity.Question;
+import net.diaowen.dwsurvey.repository.answer.AnAnswerRepository;
 import net.diaowen.dwsurvey.service.AnAnswerManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * @author keyuan
  * keyuan258@gmail.com
  */
-
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class AnAnswerManagerImpl extends BaseServiceImpl<AnAnswer, String> implements AnAnswerManager {
-  @Autowired
-  private AnAnswerDao anAnswerDao;
+  private final AnAnswerRepository anAnswerRepository;
+  private final AnAnswerDao anAnswerDao;
 
   @Override
   public void setBaseDao() {
@@ -37,7 +40,12 @@ public class AnAnswerManagerImpl extends BaseServiceImpl<AnAnswer, String> imple
 
   @Override
   public void findGroupStats(Question question) {
-    anAnswerDao.findGroupStats(question);
+    Object[] objs = anAnswerRepository.findGroupStats(question.getId());
+    //未回答数
+    question.setRowContent(objs[0].toString());
+    //回答的项数
+    question.setOptionContent(objs[1].toString());
+    question.setAnCount(Integer.parseInt(objs[1].toString()));
   }
 
 }

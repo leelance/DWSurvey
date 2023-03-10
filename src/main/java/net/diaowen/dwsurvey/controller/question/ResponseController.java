@@ -59,8 +59,6 @@ public class ResponseController {
   private AccountManager accountManager;
   @Autowired
   private ImageCaptchaService imageCaptchaService;
-//	@Autowired
-//	private SurveyAnswerLogManager surveyAnswerLogManager;
 
   @RequestMapping("/save.do")
   public String save(HttpServletRequest request, HttpServletResponse response, String surveyId) throws Exception {

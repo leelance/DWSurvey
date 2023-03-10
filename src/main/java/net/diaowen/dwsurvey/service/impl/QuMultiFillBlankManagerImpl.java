@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.QuMultiFillblankDao;
 import net.diaowen.dwsurvey.entity.QuMultiFillblank;
-import net.diaowen.dwsurvey.repository.QuMultiFillBankRepository;
+import net.diaowen.dwsurvey.repository.question.QuMultiFillBankRepository;
 import net.diaowen.dwsurvey.service.QuMultiFillblankManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;

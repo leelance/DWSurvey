@@ -99,7 +99,6 @@ public class MySurveyController {
     return HttpResult.SUCCESS(directory);
   }
 
-
   /**
    * 问卷删除
    */
@@ -108,19 +107,16 @@ public class MySurveyController {
     String result = null;
     try {
       UserDetailsImpl curUser = accountManager.getCurUser();
-      if (curUser != null) {
-        if (map != null) {
-          if (map.containsKey("id")) {
-            String[] ids = map.get("id");
-            if (ids != null) {
-              surveyDirectoryManager.delete(ids);
-              return HttpResult.SUCCESS();
-            }
-          }
+      if (curUser != null && map != null && map.containsKey("id")) {
+        String[] ids = map.get("id");
+        if (ids != null) {
+          surveyDirectoryManager.delete(ids);
+          return HttpResult.SUCCESS();
         }
       }
     } catch (Exception e) {
       result = e.getMessage();
+      log.warn("===>survey[{}] delete fail: ", map, e);
     }
     return HttpResult.FAILURE(result);
   }
@@ -135,7 +131,7 @@ public class MySurveyController {
       surveyDirectoryManager.upSurveyState(surveyId, surveyState);
       return HttpResult.SUCCESS();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.warn("===>survey[{}, {}] update status fail: ", surveyId, surveyState, e);
     }
     return HttpResult.FAILURE();
   }
@@ -150,7 +146,7 @@ public class MySurveyController {
       surveyDetailManager.saveBaseUp(surveyDetail);
       return HttpResult.SUCCESS();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.warn("===>survey[{}] update base attr fail: ", surveyDetail, e);
     }
     return HttpResult.FAILURE();
   }

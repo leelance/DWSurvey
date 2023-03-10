@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.QuRadioDao;
 import net.diaowen.dwsurvey.entity.QuRadio;
-import net.diaowen.dwsurvey.repository.QuRadioRepository;
+import net.diaowen.dwsurvey.repository.question.QuRadioRepository;
 import net.diaowen.dwsurvey.service.QuRadioManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;

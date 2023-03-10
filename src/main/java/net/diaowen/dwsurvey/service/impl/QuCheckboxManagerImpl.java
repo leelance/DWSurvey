@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.QuCheckboxDao;
 import net.diaowen.dwsurvey.entity.QuCheckbox;
-import net.diaowen.dwsurvey.repository.QuCheckBoxRepository;
+import net.diaowen.dwsurvey.repository.question.QuCheckBoxRepository;
 import net.diaowen.dwsurvey.service.QuCheckboxManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;

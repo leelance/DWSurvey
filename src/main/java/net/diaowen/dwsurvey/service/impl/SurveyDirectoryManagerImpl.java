@@ -9,6 +9,7 @@ import net.diaowen.common.plugs.httpclient.HttpResult;
 import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.common.utils.RandomUtils;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.config.DWSurveyConfig;
 import net.diaowen.dwsurvey.config.security.UserDetailsImpl;
 import net.diaowen.dwsurvey.dao.SurveyDirectoryDao;
@@ -16,8 +17,8 @@ import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.entity.SurveyDetail;
 import net.diaowen.dwsurvey.entity.SurveyDirectory;
 import net.diaowen.dwsurvey.entity.SurveyStats;
-import net.diaowen.dwsurvey.repository.SurveyDetailRepository;
-import net.diaowen.dwsurvey.repository.SurveyDirectoryRepository;
+import net.diaowen.dwsurvey.repository.survey.SurveyDetailRepository;
+import net.diaowen.dwsurvey.repository.survey.SurveyDirectoryRepository;
 import net.diaowen.dwsurvey.service.QuestionManager;
 import net.diaowen.dwsurvey.service.SurveyDetailManager;
 import net.diaowen.dwsurvey.service.SurveyDirectoryManager;
@@ -36,10 +37,7 @@ import javax.persistence.criteria.Predicate;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -233,40 +231,41 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
 
   @Override
   public void delete(String id) {
-    //设为不可见
-    SurveyDirectory parentDirectory = get(id);
-    parentDirectory.setVisibility(0);
-    surveyDirectoryRepository.save(parentDirectory);
-
-    Criterion criterion = Restrictions.eq("parentId", parentDirectory.getId());
-    List<SurveyDirectory> directories = findList(criterion);
-    if (directories != null) {
-      for (SurveyDirectory surveyDirectory : directories) {
-        delete(surveyDirectory);
+    surveyDirectoryRepository.findById(id).ifPresent(p -> {
+      //设为不可见当前
+      p.setVisibility(0);
+      surveyDirectoryRepository.save(p);
+      //遍历查询下级
+      List<SurveyDirectory> children = surveyDirectoryRepository.findByParentId(p.getId());
+      if (Objects.nonNull(children) && !children.isEmpty()) {
+        for (SurveyDirectory surveyDirectory : children) {
+          delete(surveyDirectory);
+        }
       }
-    }
+    });
   }
 
   @Override
   public void delete(SurveyDirectory parentDirectory) {
     String id = parentDirectory.getId();
     //目录ID，为1的为系统默认注册用户目录不能删除
-    if (!"1".equals(id)) {
-      //设为不可见
-      parentDirectory.setVisibility(0);
-      Criterion criterion = Restrictions.eq("parentId", parentDirectory.getId());
-      List<SurveyDirectory> directories = findList(criterion);
-      if (directories != null) {
-        for (SurveyDirectory surveyDirectory : directories) {
-          delete(surveyDirectory);
-        }
+    if (SurveyConst.SUR_DIR_DEFAULT_ID.equals(id)) {
+      return;
+    }
+
+    //设为不可见
+    parentDirectory.setVisibility(0);
+    List<SurveyDirectory> children = surveyDirectoryRepository.findByParentId(parentDirectory.getId());
+    if (Objects.nonNull(children) && !children.isEmpty()) {
+      for (SurveyDirectory surveyDirectory : children) {
+        delete(surveyDirectory);
       }
     }
   }
 
   @Override
   public SurveyDirectory findByNameUn(String id, String parentId, String surveyName) {
-    List<Criterion> criterions = new ArrayList<Criterion>();
+    List<Criterion> criterions = new ArrayList<>();
     Criterion eqName = Restrictions.eq("surveyName", surveyName);
     Criterion eqParentId = Restrictions.eq("parentId", parentId);
     criterions.add(eqName);
