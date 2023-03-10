@@ -1,6 +1,8 @@
 package net.diaowen.dwsurvey.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.QuType;
 import net.diaowen.common.service.BaseServiceImpl;
 import net.diaowen.dwsurvey.dao.SurveyStatsDao;
@@ -11,7 +13,6 @@ import net.diaowen.dwsurvey.entity.SurveyStats;
 import net.diaowen.dwsurvey.service.*;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,34 +28,23 @@ import java.util.regex.Pattern;
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class SurveyStatsManagerImpl extends BaseServiceImpl<SurveyStats, String> implements SurveyStatsManager {
-  @Autowired
-  private SurveyStatsDao surveyStatsDao;
-  @Autowired
-  private SurveyAnswerManager surveyAnswerManager;
-  @Autowired
-  private QuestionManager questionManager;
-  @Autowired
-  private AnYesnoManager anYesnoManager;
-  @Autowired
-  private AnRadioManager anRadioManager;
-  @Autowired
-  private AnFillblankManager anFillblankManager;
-  @Autowired
-  private AnEnumquManager anEnumquManager;
-  @Autowired
-  private AnDFillblankManager anDFillblankManager;
-  @Autowired
-  private AnCheckboxManager anCheckboxManager;
-  @Autowired
-  private AnAnswerManager anAnswerManager;
-  @Autowired
-  private AnScoreManager anScoreManager;
-  @Autowired
-  private AnOrderManager anOrderManager;
-  @Autowired
-  private AnUploadFileManager anUploadFileManager;
+  private final SurveyStatsDao surveyStatsDao;
+  private final SurveyAnswerManager surveyAnswerManager;
+  private final QuestionManager questionManager;
+  private final AnYesnoManager anYesnoManager;
+  private final AnRadioManager anRadioManager;
+  private final AnFillblankManager anFillblankManager;
+  private final AnEnumquManager anEnumquManager;
+  private final AnDFillblankManager anDFillblankManager;
+  private final AnCheckboxManager anCheckboxManager;
+  private final AnAnswerManager anAnswerManager;
+  private final AnScoreManager anScoreManager;
+  private final AnOrderManager anOrderManager;
+  private final AnUploadFileManager anUploadFileManager;
 
   @Override
   public void setBaseDao() {
@@ -63,7 +53,6 @@ public class SurveyStatsManagerImpl extends BaseServiceImpl<SurveyStats, String>
 
   @Override
   public SurveyStats findBySurvey(String surveyId) {
-    // return surveyStatsDao.findUniqueBy("surveyId", surveyId);
     Criterion criterion = Restrictions.eq("surveyId", surveyId);
     return surveyStatsDao.findFirst(criterion);
   }
