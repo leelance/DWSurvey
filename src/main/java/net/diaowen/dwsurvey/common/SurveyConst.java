@@ -19,6 +19,9 @@ public class SurveyConst {
    * 定义field
    */
   public static final String FIELD_HANDLE_STATE = "handleState";
+  public static final String FIELD_EMPTY_COUNT = "emptyCount";
+  public static final String FIELD_BLANK_COUNT = "blankCount";
+  public static final String FIELD_THREE = "three";
 
   /**
    * 定义map key

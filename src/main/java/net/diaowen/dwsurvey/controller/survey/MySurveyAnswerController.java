@@ -72,7 +72,7 @@ public class MySurveyAnswerController {
     try {
       SurveyAnswer answer = null;
       if (StringUtils.isNotEmpty(answerId)) {
-        answer = surveyAnswerManager.findById(answerId);
+        answer = surveyAnswerManager.findOne(answerId);
       }
       if (answer != null) {
         SurveyDirectory survey = surveyDirectoryManager.findUniqueBy(answer.getSurveyId());

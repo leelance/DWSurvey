@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * answer order
@@ -21,6 +22,6 @@ public interface AnOrderRepository extends CrudRepository<AnOrder, String>, JpaS
    * @param quId 题目id
    * @return List<Object [ ]>
    */
-  @Query(value = "select qu_row_id,sum(ordery_num) sumOrderNum from t_an_order where visibility=1 and qu_id=?1 group by qu_row_id order by sumOrderNum", nativeQuery = true)
-  List<Object[]> findGroupStats(String quId);
+  @Query(value = "select qu_row_id as emptyCount,sum(ordery_num) as blankCount from t_an_order where visibility=1 and qu_id=?1 group by qu_row_id order by blankCount", nativeQuery = true)
+  List<Map<String, Object>> findGroupStats(String quId);
 }

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.dao.AnFillblankDao;
 import net.diaowen.dwsurvey.entity.AnFillblank;
 import net.diaowen.dwsurvey.entity.Question;
@@ -11,7 +12,11 @@ import net.diaowen.dwsurvey.repository.answer.AnFillBlankRepository;
 import net.diaowen.dwsurvey.service.AnFillblankManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.math.BigInteger;
+import java.util.Map;
 
 /**
  * 填空题
@@ -35,20 +40,21 @@ public class AnFillblankManagerImpl extends BaseServiceImpl<AnFillblank, String>
 
   @Override
   public AnFillblank findAnswer(String belongAnswerId, String quId) {
-    //belongAnswerId quId
-    Criterion criterion1 = Restrictions.eq("belongAnswerId", belongAnswerId);
-    Criterion criterion2 = Restrictions.eq("quId", quId);
-    return anFillblankDao.findUnique(criterion1, criterion2);
+    Specification<AnFillblank> spec = answerSpec(quId, belongAnswerId);
+    return anFillBlankRepository.findOne(spec).orElse(null);
   }
 
   @Override
   public void findGroupStats(Question question) {
-    Object[] objs = anFillBlankRepository.findGroupStats(question.getId());
+    Map<String, BigInteger> objs = anFillBlankRepository.findGroupStats(question.getId());
+    if (log.isDebugEnabled()) {
+      log.debug("===>answer fill blank: {}", objs);
+    }
     //未回答数
-    question.setRowContent(objs[0].toString());
+    question.setRowContent(objs.get(SurveyConst.FIELD_EMPTY_COUNT).toString());
     //回答的项数
-    question.setOptionContent(objs[1].toString());
-    question.setAnCount(Integer.parseInt(objs[1].toString()));
+    question.setOptionContent(objs.get(SurveyConst.FIELD_BLANK_COUNT).toString());
+    question.setAnCount(objs.get(SurveyConst.FIELD_BLANK_COUNT).intValue());
   }
 
   @Override

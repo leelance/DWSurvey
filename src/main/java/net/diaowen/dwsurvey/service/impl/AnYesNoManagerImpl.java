@@ -3,17 +3,19 @@ package net.diaowen.dwsurvey.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.dao.AnYesnoDao;
 import net.diaowen.dwsurvey.entity.AnYesno;
 import net.diaowen.dwsurvey.entity.DataCross;
 import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.repository.answer.AnYesNoRepository;
 import net.diaowen.dwsurvey.service.AnYesnoManager;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 枚举题
@@ -40,15 +42,13 @@ public class AnYesNoManagerImpl extends BaseServiceImpl<AnYesno, String> impleme
    */
   @Override
   public AnYesno findAnswer(String belongAnswerId, String quId) {
-    //belongAnswerId quId
-    Criterion criterion1 = Restrictions.eq("belongAnswerId", belongAnswerId);
-    Criterion criterion2 = Restrictions.eq("quId", quId);
-    return anYesnoDao.findUnique(criterion1, criterion2);
+    Specification<AnYesno> spec = answerSpec(quId, belongAnswerId);
+    return anYesNoRepository.findOne(spec).orElse(null);
   }
 
   @Override
   public void findGroupStats(Question question) {
-    List<Object[]> list = anYesNoRepository.findGroupStats(question.getId());
+    List<Map<String, Object>> list = anYesNoRepository.findGroupStats(question.getId());
 
     String tranValue = question.getYesnoOption().getTrueValue();
     String falseValue = question.getYesnoOption().getFalseValue();
@@ -56,13 +56,13 @@ public class AnYesNoManagerImpl extends BaseServiceImpl<AnYesno, String> impleme
     question.setParamInt01(0);
     question.setParamInt02(0);
     int count = 0;
-    for (Object[] objects : list) {
-      if (tranValue.equals(objects[0].toString())) {
-        int anCount = Integer.parseInt(objects[1].toString());
+    for (Map<String, Object> objects : list) {
+      if (tranValue.equals(objects.get(SurveyConst.FIELD_EMPTY_COUNT))) {
+        int anCount = ((BigInteger) objects.get(SurveyConst.FIELD_BLANK_COUNT)).intValue();
         count += anCount;
         question.setParamInt01(anCount);
-      } else if (falseValue.equals(objects[0].toString())) {
-        int anCount = Integer.parseInt(objects[1].toString());
+      } else if (falseValue.equals(objects.get(SurveyConst.FIELD_EMPTY_COUNT))) {
+        int anCount = ((BigInteger) objects.get(SurveyConst.FIELD_BLANK_COUNT)).intValue();
         count += anCount;
         question.setParamInt02(anCount);
       }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * answer score
@@ -21,6 +22,6 @@ public interface AnScoreRepository extends CrudRepository<AnScore, String>, JpaS
    * @param quId 题目id
    * @return List<Object [ ]>
    */
-  @Query(value = "select qu_row_id,count(qu_row_id),AVG(answser_score) from t_an_score where visibility=1 and qu_id=?1 GROUP BY qu_row_id", nativeQuery = true)
-  List<Object[]> findGroupStats(String quId);
+  @Query(value = "select qu_row_id as emptyCount,count(qu_row_id) as blankCount,AVG(answser_score) as three from t_an_score where visibility=1 and qu_id=?1 GROUP BY qu_row_id", nativeQuery = true)
+  List<Map<String, Object>> findGroupStats(String quId);
 }

@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import java.math.BigInteger;
+import java.util.Map;
+
 /**
  * answer
  *
@@ -20,5 +23,5 @@ public interface AnAnswerRepository extends CrudRepository<AnAnswer, String>, Jp
    * @return List<Object [ ]>
    */
   @Query(value = "select count(case when answer='' then answer end) emptyCount, count(case when answer!='' then answer end) blankCount from t_an_answer where visibility=1 and qu_id=?1", nativeQuery = true)
-  Object[] findGroupStats(String quId);
+  Map<String, BigInteger> findGroupStats(String quId);
 }

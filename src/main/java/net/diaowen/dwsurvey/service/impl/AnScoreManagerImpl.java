@@ -3,17 +3,19 @@ package net.diaowen.dwsurvey.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.dao.AnScoreDao;
 import net.diaowen.dwsurvey.entity.AnScore;
 import net.diaowen.dwsurvey.entity.QuScore;
 import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.repository.answer.AnScoreRepository;
 import net.diaowen.dwsurvey.service.AnScoreManager;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 评分题
@@ -37,25 +39,24 @@ public class AnScoreManagerImpl extends BaseServiceImpl<AnScore, String> impleme
 
   @Override
   public List<AnScore> findAnswer(String belongAnswerId, String quId) {
-    Criterion criterion1 = Restrictions.eq("belongAnswerId", belongAnswerId);
-    Criterion criterion2 = Restrictions.eq("quId", quId);
-    return anScoreDao.find(criterion1, criterion2);
+    Specification<AnScore> spec = answerSpec(quId, belongAnswerId);
+    return anScoreRepository.findAll(spec);
   }
 
   @Override
   public void findGroupStats(Question question) {
-    List<Object[]> list = anScoreRepository.findGroupStats(question.getId());
+    List<Map<String, Object>> list = anScoreRepository.findGroupStats(question.getId());
     List<QuScore> quScores = question.getQuScores();
 
     int count = 0;
     for (QuScore quScore : quScores) {
       String quScoreId = quScore.getId();
-      for (Object[] objects : list) {
-        if (quScoreId.equals(objects[0].toString())) {
-          int anCount = Integer.parseInt(objects[1].toString());
+      for (Map<String, Object> objects : list) {
+        if (quScoreId.equals(objects.get(SurveyConst.FIELD_EMPTY_COUNT))) {
+          int anCount = ((BigInteger) objects.get(SurveyConst.FIELD_BLANK_COUNT)).intValue();
           count += anCount;
           quScore.setAnCount(anCount);
-          quScore.setAvgScore(Float.parseFloat(objects[2].toString()));
+          quScore.setAvgScore(((Double) objects.get(SurveyConst.FIELD_THREE)).floatValue());
         }
       }
     }

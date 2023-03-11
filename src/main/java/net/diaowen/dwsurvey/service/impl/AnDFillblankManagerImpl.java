@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.dao.AnDFillblankDao;
 import net.diaowen.dwsurvey.entity.AnDFillblank;
 import net.diaowen.dwsurvey.entity.QuMultiFillblank;
@@ -12,9 +13,12 @@ import net.diaowen.dwsurvey.repository.answer.AndFillBlankRepository;
 import net.diaowen.dwsurvey.service.AnDFillblankManager;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 多行填空题
@@ -38,22 +42,20 @@ public class AnDFillblankManagerImpl extends BaseServiceImpl<AnDFillblank, Strin
 
   @Override
   public List<AnDFillblank> findAnswer(String belongAnswerId, String quId) {
-    //belongAnswerId quId
-    Criterion criterion1 = Restrictions.eq("belongAnswerId", belongAnswerId);
-    Criterion criterion2 = Restrictions.eq("quId", quId);
-    return anDFillblankDao.find(criterion1, criterion2);
+    Specification<AnDFillblank> spec = answerSpec(quId, belongAnswerId);
+    return andFillBlankRepository.findAll(spec);
   }
 
   @Override
   public void findGroupStats(Question question) {
-    List<Object[]> list = andFillBlankRepository.findGroupStats(question.getId());
+    List<Map<String, Object>> list = andFillBlankRepository.findGroupStats(question.getId());
     List<QuMultiFillblank> fillBlanks = question.getQuMultiFillblanks();
 
     for (QuMultiFillblank quMultiFillblank : fillBlanks) {
       String fillBlankId = quMultiFillblank.getId();
-      for (Object[] objects : list) {
-        if (fillBlankId.equals(objects[0].toString())) {
-          quMultiFillblank.setAnCount(Integer.parseInt(objects[1].toString()));
+      for (Map<String, Object> objects : list) {
+        if (fillBlankId.equals(objects.get(SurveyConst.FIELD_EMPTY_COUNT))) {
+          quMultiFillblank.setAnCount(((BigInteger) objects.get(SurveyConst.FIELD_BLANK_COUNT)).intValue());
         }
       }
     }

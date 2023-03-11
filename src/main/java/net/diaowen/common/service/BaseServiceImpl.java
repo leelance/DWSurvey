@@ -95,4 +95,20 @@ public abstract class BaseServiceImpl<T extends IdEntity, ID extends Serializabl
       return cb.and(predicates.toArray(new Predicate[0]));
     };
   }
+
+  /**
+   * 查询题目答案spec
+   *
+   * @param quId           questionId
+   * @param belongAnswerId answerId
+   * @return Specification
+   */
+  protected Specification<T> answerSpec(final String quId, final String belongAnswerId) {
+    return (root, query, cb) -> {
+      List<Predicate> predicates = new ArrayList<>();
+      predicates.add(cb.equal(root.get("quId"), quId));
+      predicates.add(cb.equal(root.get("belongAnswerId"), belongAnswerId));
+      return cb.and(predicates.toArray(new Predicate[0]));
+    };
+  }
 }

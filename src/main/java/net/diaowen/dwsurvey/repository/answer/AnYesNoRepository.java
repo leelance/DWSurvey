@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 答案yes/no
@@ -21,6 +22,6 @@ public interface AnYesNoRepository extends CrudRepository<AnYesno, String>, JpaS
    * @param quId 题目id
    * @return List<Object [ ]>
    */
-  @Query(value = "select yesno_answer,count(yesno_answer) from t_an_yesno where visibility=1 and qu_id=?1 GROUP BY yesno_answer", nativeQuery = true)
-  List<Object[]> findGroupStats(String quId);
+  @Query(value = "select yesno_answer as emptyCount,count(yesno_answer)as blankCount from t_an_yesno where visibility=1 and qu_id=?1 GROUP BY yesno_answer", nativeQuery = true)
+  List<Map<String, Object>> findGroupStats(String quId);
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * answer d fill blank
@@ -21,6 +22,6 @@ public interface AndFillBlankRepository extends CrudRepository<AnDFillblank, Str
    * @param quId 题目id
    * @return List<Object [ ]>
    */
-  @Query(value = "select qu_item_id,count(*) from t_an_dfillblank where visibility=1 and qu_id=?1 group by qu_item_id", nativeQuery = true)
-  List<Object[]> findGroupStats(String quId);
+  @Query(value = "select qu_item_id as emptyCount,count(*)as blankCount from t_an_dfillblank where visibility=1 and qu_id=?1 group by qu_item_id", nativeQuery = true)
+  List<Map<String, Object>> findGroupStats(String quId);
 }

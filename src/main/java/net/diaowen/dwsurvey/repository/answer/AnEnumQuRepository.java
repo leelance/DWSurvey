@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * answer enum question
@@ -21,6 +22,6 @@ public interface AnEnumQuRepository extends CrudRepository<AnEnumqu, String>, Jp
    * @param quId 题目id
    * @return List<Object [ ]>
    */
-  @Query(value = "select answer,count(answer) from t_an_enumqu where visibility=1 and qu_id=?1 GROUP BY answer", nativeQuery = true)
-  List<Object[]> findGroupStats(String quId);
+  @Query(value = "select answer as emptyCount,count(answer) as blankCount from t_an_enumqu where visibility=1 and qu_id=?1 GROUP BY answer", nativeQuery = true)
+  List<Map<String, Object>> findGroupStats(String quId);
 }

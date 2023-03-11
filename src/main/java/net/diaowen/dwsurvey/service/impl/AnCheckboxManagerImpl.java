@@ -3,6 +3,7 @@ package net.diaowen.dwsurvey.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.dao.AnCheckboxDao;
 import net.diaowen.dwsurvey.entity.AnCheckbox;
 import net.diaowen.dwsurvey.entity.DataCross;
@@ -10,11 +11,12 @@ import net.diaowen.dwsurvey.entity.QuCheckbox;
 import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.repository.answer.AnCheckBoxRepository;
 import net.diaowen.dwsurvey.service.AnCheckboxManager;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 多选题
@@ -38,23 +40,21 @@ public class AnCheckboxManagerImpl extends BaseServiceImpl<AnCheckbox, String> i
 
   @Override
   public List<AnCheckbox> findAnswer(String belongAnswerId, String quId) {
-    //belongAnswerId quId
-    Criterion criterion1 = Restrictions.eq("belongAnswerId", belongAnswerId);
-    Criterion criterion2 = Restrictions.eq("quId", quId);
-    return anCheckboxDao.find(criterion1, criterion2);
+    Specification<AnCheckbox> spec = answerSpec(quId, belongAnswerId);
+    return anCheckBoxRepository.findAll(spec);
   }
 
   @Override
   public void findGroupStats(Question question) {
-    List<Object[]> list = anCheckBoxRepository.findGroupStats(question.getId());
+    List<Map<String, Object>> list = anCheckBoxRepository.findGroupStats(question.getId());
     List<QuCheckbox> checkboxes = question.getQuCheckboxs();
 
     int count = 0;
     for (QuCheckbox quCheckbox : checkboxes) {
       String quCheckboxId = quCheckbox.getId();
-      for (Object[] objects : list) {
-        if (quCheckboxId.equals(objects[0].toString())) {
-          int anCount = Integer.parseInt(objects[1].toString());
+      for (Map<String, Object> objects : list) {
+        if (quCheckboxId.equals(objects.get(SurveyConst.FIELD_EMPTY_COUNT))) {
+          int anCount = ((BigInteger) objects.get(SurveyConst.FIELD_BLANK_COUNT)).intValue();
           count += anCount;
           quCheckbox.setAnCount(anCount);
         }

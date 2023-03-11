@@ -3,18 +3,20 @@ package net.diaowen.dwsurvey.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.dao.AnOrderDao;
 import net.diaowen.dwsurvey.entity.AnOrder;
 import net.diaowen.dwsurvey.entity.QuOrderby;
 import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.repository.answer.AnOrderRepository;
 import net.diaowen.dwsurvey.service.AnOrderManager;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 排序题
@@ -38,20 +40,22 @@ public class AnOrderManagerImpl extends BaseServiceImpl<AnOrder, String> impleme
 
   @Override
   public List<AnOrder> findAnswer(String belongAnswerId, String quId) {
-    Criterion criterion1 = Restrictions.eq("belongAnswerId", belongAnswerId);
-    Criterion criterion2 = Restrictions.eq("quId", quId);
-    return anOrderDao.findByOrder("orderyNum", true, criterion1, criterion2);
+    Specification<AnOrder> spec = answerSpec(quId, belongAnswerId);
+
+    List<AnOrder> list = anOrderRepository.findAll(spec);
+    list.sort(Comparator.comparing(AnOrder::getOrderyNum));
+    return list;
   }
 
   @Override
   public void findGroupStats(Question question) {
-    List<Object[]> list = anOrderRepository.findGroupStats(question.getId());
+    List<Map<String, Object>> list = anOrderRepository.findGroupStats(question.getId());
     List<QuOrderby> orderBys = question.getQuOrderbys();
 
     List<QuOrderby> list2 = new ArrayList<>();
-    for (Object[] objects : list) {
-      float num = Float.parseFloat(objects[1].toString());
-      String quOrderById = objects[0].toString();
+    for (Map<String, Object> objects : list) {
+      double num = (double) objects.get(SurveyConst.FIELD_BLANK_COUNT);
+      String quOrderById = objects.get(SurveyConst.FIELD_EMPTY_COUNT).toString();
       for (QuOrderby quOrderby : orderBys) {
         if (quOrderById.equals(quOrderby.getId())) {
           quOrderby.setAnOrderSum((int) num);

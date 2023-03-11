@@ -3,6 +3,7 @@ package net.diaowen.dwsurvey.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.dao.AnRadioDao;
 import net.diaowen.dwsurvey.entity.AnRadio;
 import net.diaowen.dwsurvey.entity.DataCross;
@@ -10,11 +11,12 @@ import net.diaowen.dwsurvey.entity.QuRadio;
 import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.repository.answer.AnRadioRepository;
 import net.diaowen.dwsurvey.service.AnRadioManager;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 单选题
@@ -41,23 +43,21 @@ public class AnRadioManagerImpl extends BaseServiceImpl<AnRadio, String> impleme
    */
   @Override
   public AnRadio findAnswer(String belongAnswerId, String quId) {
-    //belongAnswerId quId
-    Criterion criterion1 = Restrictions.eq("belongAnswerId", belongAnswerId);
-    Criterion criterion2 = Restrictions.eq("quId", quId);
-    return anRadioDao.findUnique(criterion1, criterion2);
+    Specification<AnRadio> spec = answerSpec(quId, belongAnswerId);
+    return anRadioRepository.findOne(spec).orElse(null);
   }
 
   @Override
   public void findGroupStats(Question question) {
-    List<Object[]> list = anRadioRepository.findGroupStats(question.getId());
+    List<Map<String, Object>> list = anRadioRepository.findGroupStats(question.getId());
     List<QuRadio> quRadios = question.getQuRadios();
 
     int count = 0;
     for (QuRadio quRadio : quRadios) {
       String quRadioId = quRadio.getId();
-      for (Object[] objects : list) {
-        if (quRadioId.equals(objects[0].toString())) {
-          int anCount = Integer.parseInt(objects[1].toString());
+      for (Map<String, Object> objects : list) {
+        if (quRadioId.equals(objects.get(SurveyConst.FIELD_EMPTY_COUNT).toString())) {
+          int anCount = ((BigInteger) objects.get(SurveyConst.FIELD_BLANK_COUNT)).intValue();
           count += anCount;
           quRadio.setAnCount(anCount);
         }

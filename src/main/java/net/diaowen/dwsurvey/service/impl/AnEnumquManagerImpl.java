@@ -8,11 +8,11 @@ import net.diaowen.dwsurvey.entity.AnEnumqu;
 import net.diaowen.dwsurvey.entity.Question;
 import net.diaowen.dwsurvey.repository.answer.AnEnumQuRepository;
 import net.diaowen.dwsurvey.service.AnEnumquManager;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 枚举题
@@ -36,15 +36,13 @@ public class AnEnumquManagerImpl extends BaseServiceImpl<AnEnumqu, String> imple
 
   @Override
   public List<AnEnumqu> findAnswer(String belongAnswerId, String quId) {
-    //belongAnswerId quId
-    Criterion criterion1 = Restrictions.eq("belongAnswerId", belongAnswerId);
-    Criterion criterion2 = Restrictions.eq("quId", quId);
-    return anEnumquDao.find(criterion1, criterion2);
+    Specification<AnEnumqu> spec = answerSpec(quId, belongAnswerId);
+    return anEnumQuRepository.findAll(spec);
   }
 
   @Override
   public void findGroupStats(Question question) {
-    List<Object[]> list = anEnumQuRepository.findGroupStats(question.getId());
+    List<Map<String, Object>> list = anEnumQuRepository.findGroupStats(question.getId());
     //一共有多少对枚举数
     if (list != null && !list.isEmpty()) {
       question.setAnCount(list.size());

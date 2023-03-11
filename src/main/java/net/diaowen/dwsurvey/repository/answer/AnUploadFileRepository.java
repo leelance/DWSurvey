@@ -5,7 +5,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 /**
  * answer upload file
@@ -22,7 +24,7 @@ public interface AnUploadFileRepository extends CrudRepository<AnUplodFile, Stri
    * @return List<Object [ ]>
    */
   @Query(value = "select count(case when file_path='' then file_path end) emptyCount, count(case when file_path!='' then file_path end) blankCount from t_an_uplodfile where visibility=1 and qu_id=?1", nativeQuery = true)
-  Object[] findGroupStats(String quId);
+  Map<String, BigInteger> findGroupStats(String quId);
 
   /**
    * 查询上传文件答案

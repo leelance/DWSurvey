@@ -159,21 +159,16 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
     String surveyAnswerId = answer.getId();
     List<Question> questions = questionManager.findDetails(surveyId, 2);
     for (Question question : questions) {
-      getquestionAnswer(surveyAnswerId, question);
+      getQuestionAnswer(surveyAnswerId, question);
     }
     return questions;
   }
 
-
   /**
    * 取问卷值方式
-   *
-   * @param surveyAnswerId
-   * @param question
-   * @return
    */
   @Override
-  public int getquestionAnswer(String surveyAnswerId, Question question) {
+  public int getQuestionAnswer(String surveyAnswerId, Question question) {
     int score = 0;
     String quId = question.getId();
     // 查询每一题的答案,如果是主观题，则判断是否答对
@@ -196,34 +191,27 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
         question.setAnYesno(anYesno);
       }
     } else if (quType == QuType.RADIO || quType == QuType.COMPRADIO) {
-      // 复合
       AnRadio anRadio = anRadioManager.findAnswer(surveyAnswerId, quId);
       if (anRadio != null) {
         question.setAnRadio(anRadio);
       }
     } else if (quType == QuType.CHECKBOX || quType == QuType.COMPCHECKBOX) {
-      // 复合
-      List<AnCheckbox> anCheckboxs = anCheckboxManager.findAnswer(
-          surveyAnswerId, quId);
-      if (anCheckboxs != null) {
-        question.setAnCheckboxs(anCheckboxs);
+      List<AnCheckbox> checkboxes = anCheckboxManager.findAnswer(surveyAnswerId, quId);
+      if (checkboxes != null) {
+        question.setAnCheckboxs(checkboxes);
       }
     } else if (quType == QuType.FILLBLANK) {
-      AnFillblank anFillblank = anFillblankManager.findAnswer(
-          surveyAnswerId, quId);
+      AnFillblank anFillblank = anFillblankManager.findAnswer(surveyAnswerId, quId);
       if (anFillblank != null) {
         question.setAnFillblank(anFillblank);
       }
-
     } else if (quType == QuType.MULTIFILLBLANK) {
-      List<AnDFillblank> anDFillblanks = anDFillblankManager.findAnswer(
-          surveyAnswerId, quId);
-      if (anDFillblanks != null) {
-        question.setAnDFillblanks(anDFillblanks);
+      List<AnDFillblank> anMultiFillBlanks = anDFillblankManager.findAnswer(surveyAnswerId, quId);
+      if (anMultiFillBlanks != null) {
+        question.setAnDFillblanks(anMultiFillBlanks);
       }
     } else if (quType == QuType.ANSWER) {
-      AnAnswer anAnswer = anAnswerManager
-          .findAnswer(surveyAnswerId, quId);
+      AnAnswer anAnswer = anAnswerManager.findAnswer(surveyAnswerId, quId);
       if (anAnswer != null) {
         question.setAnAnswer(anAnswer);
       }
@@ -233,14 +221,12 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
       // score=getquestionAnswer(surveyAnswerId, childQuestion);
       // }
     } else if (quType == QuType.ENUMQU) {
-      List<AnEnumqu> anEnumqus = anEnumquManager.findAnswer(
-          surveyAnswerId, quId);
-      if (anEnumqus != null) {
-        question.setAnEnumqus(anEnumqus);
+      List<AnEnumqu> enumQus = anEnumquManager.findAnswer(surveyAnswerId, quId);
+      if (enumQus != null) {
+        question.setAnEnumqus(enumQus);
       }
     } else if (quType == QuType.SCORE) {
-      List<AnScore> anScores = anScoreManager.findAnswer(surveyAnswerId,
-          quId);
+      List<AnScore> anScores = anScoreManager.findAnswer(surveyAnswerId, quId);
       if (anScores != null) {
         question.setAnScores(anScores);
       }
@@ -250,8 +236,8 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
         question.setAnOrders(anOrders);
       }
     } else if (quType == QuType.UPLOADFILE) {
-      List<AnUplodFile> anUplodFiles = anUploadFileManager.findAnswer(surveyAnswerId, quId);
-      question.setAnUplodFiles(anUplodFiles);
+      List<AnUplodFile> uploadFiles = anUploadFileManager.findAnswer(surveyAnswerId, quId);
+      question.setAnUplodFiles(uploadFiles);
     }
     return score;
   }
@@ -732,6 +718,17 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
       }
     }
     return result;
+  }
+
+  /**
+   * 查询问卷调查答案
+   *
+   * @param answerId answerId
+   * @return SurveyAnswer
+   */
+  @Override
+  public SurveyAnswer findOne(String answerId) {
+    return surveyAnswerRepository.findById(answerId).orElse(null);
   }
 
   @Override

@@ -44,11 +44,19 @@ public interface SurveyAnswerManager extends BaseService<SurveyAnswer, String> {
 
   void deleteData(String[] ids);
 
-  int getquestionAnswer(String surveyAnswerId, Question question);
+  int getQuestionAnswer(String surveyAnswerId, Question question);
 
   SurveyDirectory upAnQuNum(String surveyId);
 
   SurveyDirectory upAnQuNum(SurveyDirectory surveyDirectory);
 
   List<SurveyDirectory> upAnQuNum(List<SurveyDirectory> result);
+
+  /**
+   * 查询问卷调查答案
+   *
+   * @param answerId answerId
+   * @return SurveyAnswer
+   */
+  SurveyAnswer findOne(String answerId);
 }
