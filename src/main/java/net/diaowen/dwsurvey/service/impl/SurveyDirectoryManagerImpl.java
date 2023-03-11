@@ -116,9 +116,9 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
    */
   @Override
   public List<SurveyDirectory> findPath(SurveyDirectory surveyDirectory) {
-    List<SurveyDirectory> resultList = new ArrayList<SurveyDirectory>();
+    List<SurveyDirectory> resultList = new ArrayList<>();
     if (surveyDirectory != null) {
-      List<SurveyDirectory> dirPathList = new ArrayList<SurveyDirectory>();
+      List<SurveyDirectory> dirPathList = new ArrayList<>();
       dirPathList.add(surveyDirectory);
       String parentUuid = surveyDirectory.getParentId();
       while (parentUuid != null && !"".equals(parentUuid)) {
@@ -193,11 +193,11 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
       int anItemLeastNum = 0;
       for (Question question : questions) {
         QuType quType = question.getQuType();
-        if (quType == QuType.ENUMQU) {//枚举
+        if (quType == QuType.ENUMQU) {
           anItemLeastNum += question.getParamInt01();
-        } else if (quType == QuType.MULTIFILLBLANK) {//组合填空
+        } else if (quType == QuType.MULTIFILLBLANK) {
           anItemLeastNum += question.getQuMultiFillblanks().size();
-        } else if (quType == QuType.SCORE) {//评分
+        } else if (quType == QuType.SCORE) {
           anItemLeastNum += question.getQuScores().size();
         } else {
           anItemLeastNum++;
@@ -282,7 +282,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
   public SurveyDirectory findByNameUserUn(String id, String surveyName) {
     UserDetailsImpl user = accountManager.getCurUser();
     if (user != null) {
-      List<Criterion> criterions = new ArrayList<Criterion>();
+      List<Criterion> criterions = new ArrayList<>();
       Criterion eqName = Restrictions.eq("surveyName", surveyName);
       Criterion eqUserId = Restrictions.eq("userId", user.getId());
       criterions.add(eqName);
@@ -375,7 +375,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     page.setOrderBy("createDate");
     page.setOrderDir("desc");
 
-    List<Criterion> criterions = new ArrayList<Criterion>();
+    List<Criterion> criterions = new ArrayList<>();
     criterions.add(Restrictions.eq("visibility", 1));
     criterions.add(Restrictions.eq("dirType", 2));
     criterions.add(Restrictions.eq("surveyModel", 1));
@@ -395,10 +395,10 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
 
   @Override
   public List<SurveyDirectory> newSurveyList() {
-    List<SurveyDirectory> result = new ArrayList<SurveyDirectory>();
+    List<SurveyDirectory> result = new ArrayList<>();
     try {
       SurveyDirectory entity = new SurveyDirectory();
-      PageDto<SurveyDirectory> page = new PageDto<SurveyDirectory>();
+      PageDto<SurveyDirectory> page = new PageDto<>();
       page.setPageSize(25);
       page = findPage(page, null, 1, null);
       result = page.getResult();
@@ -533,7 +533,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     Criterion cri2 = Restrictions.eq("parentId", "402880e5428a2dca01428a2f1f290000");
     Criterion cri3 = Restrictions.eq("surveyTag", 1);
     Criterion cri4 = Restrictions.isNull("sid");
-    PageDto<SurveyDirectory> page = new PageDto<SurveyDirectory>();
+    PageDto<SurveyDirectory> page = new PageDto<>();
     page.setOrderBy("createDate");
     page.setOrderDir("desc");
     page.setPageSize(10);
@@ -599,6 +599,17 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
       }
     }
 
+  }
+
+  /**
+   * 根据问卷id查询问卷记录
+   *
+   * @param surveyId 问卷id
+   * @return SurveyDirectory
+   */
+  @Override
+  public SurveyDirectory findOne(String surveyId) {
+    return surveyDirectoryRepository.findById(surveyId).orElse(null);
   }
 
   @Override

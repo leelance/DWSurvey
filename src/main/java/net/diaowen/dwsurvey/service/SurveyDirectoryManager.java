@@ -21,9 +21,6 @@ public interface SurveyDirectoryManager extends BaseService<SurveyDirectory, Str
 
   /**
    * 根据 最底层对象，得到此对象所在的目录结构
-   *
-   * @param surveyDirectory
-   * @return
    */
   List<SurveyDirectory> findPath(SurveyDirectory surveyDirectory);
 
@@ -46,10 +43,6 @@ public interface SurveyDirectoryManager extends BaseService<SurveyDirectory, Str
   SurveyDirectory findByNameUn(String id, String parentId, String surveyName);
 
   void backDesign(SurveyDirectory entity);
-
-//	 void save(SurveyDirectory entity, String[] surGroupIds);
-
-//	 void saveUserSurvey(SurveyDirectory entity, String[] surGroupIds);
 
   void saveUser(SurveyDirectory t);
 
@@ -81,11 +74,9 @@ public interface SurveyDirectoryManager extends BaseService<SurveyDirectory, Str
 
   void saveByAdmin(SurveyDirectory t);
 
-  PageDto<SurveyDirectory> findModel(PageDto<SurveyDirectory> page,
-                                     SurveyDirectory entity);
+  PageDto<SurveyDirectory> findModel(PageDto<SurveyDirectory> page, SurveyDirectory entity);
 
-  SurveyDirectory createBySurvey(String fromBankId, String surveyName,
-                                 String tag);
+  SurveyDirectory createBySurvey(String fromBankId, String surveyName, String tag);
 
   void devSurvey(SurveyDirectory survey) throws IOException;
 
@@ -95,4 +86,11 @@ public interface SurveyDirectoryManager extends BaseService<SurveyDirectory, Str
 
   void upSurveyState(String surveyId, Integer surveyState) throws IOException;
 
+  /**
+   * 根据问卷id查询问卷记录
+   *
+   * @param surveyId 问卷id
+   * @return SurveyDirectory
+   */
+  SurveyDirectory findOne(String surveyId);
 }

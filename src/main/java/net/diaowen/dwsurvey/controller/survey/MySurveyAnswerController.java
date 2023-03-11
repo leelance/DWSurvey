@@ -1,5 +1,7 @@
 package net.diaowen.dwsurvey.controller.survey;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.base.service.AccountManager;
 import net.diaowen.common.plugs.httpclient.HttpResult;
 import net.diaowen.common.plugs.httpclient.PageResult;
@@ -17,12 +19,7 @@ import net.diaowen.dwsurvey.service.AnUploadFileManager;
 import net.diaowen.dwsurvey.service.SurveyAnswerManager;
 import net.diaowen.dwsurvey.service.SurveyDirectoryManager;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,32 +27,32 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-@Controller
+/**
+ * MySurveyAnswerController
+ *
+ * @author diaowen
+ * @since 2023/3/11 00:47
+ */
+@Slf4j
+@RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/survey/app/answer")
 public class MySurveyAnswerController {
-
-  @Autowired
-  private SurveyDirectoryManager surveyDirectoryManager;
-  @Autowired
-  private SurveyAnswerManager surveyAnswerManager;
-  @Autowired
-  private AccountManager accountManager;
-  @Autowired
-  private AnUploadFileManager anUploadFileManager;
+  private final SurveyDirectoryManager surveyDirectoryManager;
+  private final SurveyAnswerManager surveyAnswerManager;
+  private final AccountManager accountManager;
+  private final AnUploadFileManager anUploadFileManager;
 
   /**
    * 获取答卷列表
-   *
-   * @return
    */
-  @RequestMapping(value = "/list.do", method = RequestMethod.GET)
-  @ResponseBody
-  public PageResult survey(HttpServletRequest request, PageResult<SurveyAnswer> pageResult, String surveyId, String ipAddr, String city, Integer isEffective) {
+  @GetMapping(value = "/list.do")
+  public PageResult survey(HttpServletRequest request, PageResult<SurveyAnswer> pageResult, String surveyId) {
     UserAgentUtils.userAgent(request);
     UserDetailsImpl user = accountManager.getCurUser();
     if (user != null) {
       PageDto page = ResultUtils.getPageByPageResult(pageResult);
-      SurveyDirectory survey = surveyDirectoryManager.get(surveyId);
+      SurveyDirectory survey = surveyDirectoryManager.findOne(surveyId);
       if (survey != null) {
         if (!user.getId().equals(survey.getUserId())) {
           pageResult.setSuccess(false);
@@ -69,8 +66,7 @@ public class MySurveyAnswerController {
 
   }
 
-  @RequestMapping(value = "/info.do", method = RequestMethod.GET)
-  @ResponseBody
+  @GetMapping(value = "/info.do")
   public HttpResult info(String answerId) throws Exception {
     try {
       SurveyAnswer answer = null;
@@ -91,40 +87,29 @@ public class MySurveyAnswerController {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      log.warn("===>survey answer[{}] info fail: ", answerId, e);
     }
     return HttpResult.FAILURE();
   }
 
 
-  /**
-   * @return
-   * @throws Exception
-   */
-  @RequestMapping(value = "/delete.do", method = RequestMethod.DELETE)
-  @ResponseBody
+  @DeleteMapping(value = "/delete.do")
   public HttpResult delete(@RequestBody Map<String, String[]> map) throws Exception {
-//		HttpResult httpResultRP = ShiroAuthorizationUtils.isDefaultAdminRoleAndPermissionHttpResult(PermissionCode.HT_CASCADEDB_DELETE);
-//		if (httpResultRP != null) return httpResultRP;
     try {
-      if (map != null) {
-        if (map.containsKey("id")) {
-          String[] ids = map.get("id");
-          if (ids != null) {
-            surveyAnswerManager.deleteData(ids);
-          }
+      if (map != null && map.containsKey("id")) {
+        String[] ids = map.get("id");
+        if (ids != null) {
+          surveyAnswerManager.deleteData(ids);
         }
       }
       return HttpResult.SUCCESS();
     } catch (Exception e) {
-      e.printStackTrace();
+      log.warn("===>survey answer[{}] delete fail: ", map, e);
     }
     return HttpResult.FAILURE();
   }
 
-
   @RequestMapping("/export-xls.do")
-  @ResponseBody
   public String exportXLS(HttpServletRequest request, HttpServletResponse response, String surveyId, String expUpQu) throws Exception {
     try {
       String savePath = DWSurveyConfig.DWSURVEY_WEB_FILE_PATH;
@@ -163,10 +148,8 @@ public class MySurveyAnswerController {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      log.warn("===>survey answer[{}, {}] export excel fail: ", surveyId, expUpQu, e);
     }
     return null;
   }
-
-
 }
