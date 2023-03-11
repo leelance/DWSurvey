@@ -38,7 +38,7 @@ public class MySurveyStatsController {
       SurveyDirectory survey = surveyDirectoryManager.findUniqueBy(surveyId);
       if (survey != null) {
         if (!user.getId().equals(survey.getUserId())) {
-          return HttpResult.FAILURE_MSG("没有相应数据权限");
+          return HttpResult.fail("没有相应数据权限");
         }
         List<Question> questions = surveyStatsManager.findFrequency(survey);
         SurveyStats surveyStats = new SurveyStats();

@@ -100,8 +100,8 @@ public class HttpResult<T> {
     return new HttpResult(HttpStatus.FAILURE.getStatusCode(), msg, data);
   }
 
-  public static HttpResult FAILURE_MSG(String msg) {
-    return new HttpResult(400, msg);
+  public static HttpResult<String> fail(String msg) {
+    return new HttpResult<>(400, msg);
   }
 
   public static <T> HttpResult EXCEPTION(T data) {

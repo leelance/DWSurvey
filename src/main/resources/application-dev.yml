@@ -2,7 +2,7 @@ dwsurvey:
   site: 'local'
   web:
     # 后端文件存储目录，默认即在安装包同级目录下
-    file-path: dwfile/dwsurvey/
+    file-path: /Users/lance/home/dwsurvey/
     # 使用哪种部署模式，后期可能会去掉，可以先保持默认
     static-type: static
     # 站点访问地址，如果配置有域名则为域名地址

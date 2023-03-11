@@ -1,17 +1,12 @@
 package net.diaowen.dwsurvey.dao;
 
-import java.util.Map;
-
 import net.diaowen.common.dao.BaseDao;
-import net.diaowen.dwsurvey.entity.SurveyStats;
 import net.diaowen.dwsurvey.entity.SurveyAnswer;
+import net.diaowen.dwsurvey.entity.SurveyStats;
 
-public interface SurveyAnswerDao extends BaseDao<SurveyAnswer, String>{
+public interface SurveyAnswerDao extends BaseDao<SurveyAnswer, String> {
 
-	public void saveAnswer(SurveyAnswer surveyAnswer,
-                           Map<String, Map<String, Object>> quMaps);
+  SurveyStats surveyStatsData(SurveyStats surveyStats);
 
-	public SurveyStats surveyStatsData(SurveyStats surveyStats);
-
-    Long countResult(String id);
+  Long countResult(String id);
 }

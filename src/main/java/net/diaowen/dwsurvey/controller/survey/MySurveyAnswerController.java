@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.base.service.AccountManager;
 import net.diaowen.common.plugs.httpclient.HttpResult;
 import net.diaowen.common.plugs.httpclient.PageResult;
-import net.diaowen.common.plugs.httpclient.ResultUtils;
-import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.utils.UserAgentUtils;
 import net.diaowen.common.utils.ZipUtil;
 import net.diaowen.dwsurvey.config.DWSurveyConfig;
@@ -19,6 +17,8 @@ import net.diaowen.dwsurvey.service.AnUploadFileManager;
 import net.diaowen.dwsurvey.service.SurveyAnswerManager;
 import net.diaowen.dwsurvey.service.SurveyDirectoryManager;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,16 +51,17 @@ public class MySurveyAnswerController {
     UserAgentUtils.userAgent(request);
     UserDetailsImpl user = accountManager.getCurUser();
     if (user != null) {
-      PageDto page = ResultUtils.getPageByPageResult(pageResult);
       SurveyDirectory survey = surveyDirectoryManager.findOne(surveyId);
       if (survey != null) {
         if (!user.getId().equals(survey.getUserId())) {
           pageResult.setSuccess(false);
           return pageResult;
         }
-        page = surveyAnswerManager.answerPage(page, surveyId);
+
+        PageRequest pageReq = pageResult.to();
+        Page<SurveyAnswer> pageRes = surveyAnswerManager.answerPage(pageReq, surveyId);
+        return PageResult.convert(pageRes);
       }
-      pageResult = ResultUtils.getPageResultByPage(page, pageResult);
     }
     return pageResult;
 
@@ -78,7 +79,7 @@ public class MySurveyAnswerController {
         UserDetailsImpl user = accountManager.getCurUser();
         if (user != null && survey != null) {
           if (!user.getId().equals(survey.getUserId())) {
-            return HttpResult.FAILURE_MSG("没有相应数据权限");
+            return HttpResult.fail("没有相应数据权限");
           }
           List<Question> questions = surveyAnswerManager.findAnswerDetail(answer);
           survey.setQuestions(questions);

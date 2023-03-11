@@ -174,10 +174,10 @@ public class SurveyDesignController {
     String userId = user.getId();
     if (user != null) {
       if (!userId.equals(surveyDirectory.getUserId())) {
-        return HttpResult.FAILURE_MSG("未登录或没有相应数据权限");
+        return HttpResult.fail("未登录或没有相应数据权限");
       }
     } else {
-      return HttpResult.FAILURE_MSG("未登录或没有相应数据权限");
+      return HttpResult.fail("未登录或没有相应数据权限");
     }
 
     if (surveyDirectory != null) {

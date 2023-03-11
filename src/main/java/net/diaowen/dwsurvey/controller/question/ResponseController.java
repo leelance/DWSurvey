@@ -1,6 +1,8 @@
 package net.diaowen.dwsurvey.controller.question;
 
 import com.octo.captcha.service.image.ImageCaptchaService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.QuType;
 import net.diaowen.common.base.service.AccountManager;
 import net.diaowen.common.plugs.httpclient.HttpResult;
@@ -9,14 +11,15 @@ import net.diaowen.common.plugs.web.Token;
 import net.diaowen.common.plugs.zxing.ZxingUtil;
 import net.diaowen.common.utils.CookieUtils;
 import net.diaowen.common.utils.NumberUtils;
+import net.diaowen.common.utils.StringConst;
 import net.diaowen.dwsurvey.common.AnswerCheckData;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.config.DWSurveyConfig;
 import net.diaowen.dwsurvey.config.security.UserDetailsImpl;
 import net.diaowen.dwsurvey.entity.*;
 import net.diaowen.dwsurvey.service.SurveyAnswerManager;
 import net.diaowen.dwsurvey.service.SurveyDirectoryManager;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -29,7 +32,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -46,19 +48,16 @@ import java.util.Map;
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
+@Slf4j
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/api/survey/anon/response")
 public class ResponseController {
-  @Autowired
-  private SurveyAnswerManager surveyAnswerManager;
-  @Autowired
-  private SurveyDirectoryManager directoryManager;
-  @Autowired
-  private IPService ipService;
-  @Autowired
-  private AccountManager accountManager;
-  @Autowired
-  private ImageCaptchaService imageCaptchaService;
+  private final SurveyAnswerManager surveyAnswerManager;
+  private final SurveyDirectoryManager directoryManager;
+  private final IPService ipService;
+  private final AccountManager accountManager;
+  private final ImageCaptchaService imageCaptchaService;
 
   @RequestMapping("/save.do")
   public String save(HttpServletRequest request, HttpServletResponse response, String surveyId) throws Exception {
@@ -83,7 +82,7 @@ public class ResponseController {
       answerAfterUpData(request, response, surveyId, entity.getId());
       return answerRedirect(directory, 6, entity.getId());
     } catch (Exception e) {
-      e.printStackTrace();
+      log.warn("===>Survey[{}] save fail: ", surveyId, e);
       return answerRedirect(directory, 5);
     }
   }
@@ -98,7 +97,6 @@ public class ResponseController {
     Integer effective = surveyDetail.getEffective();
     Integer rule = surveyDetail.getRule();
     Integer refresh = surveyDetail.getRefresh();
-    Integer refreshNum = surveyDetail.getRefreshNum();
     Integer ynEndNum = surveyDetail.getYnEndNum();
     Integer endNum = surveyDetail.getEndNum();
     Integer ynEndTime = surveyDetail.getYnEndTime();
@@ -106,19 +104,21 @@ public class ResponseController {
 
     if (visibility != 1) {
       answerCheckData.setAnswerCheck(false);
-      answerCheckData.setAnswerCheckCode(10);//问卷已经删除
+      //问卷已经删除
+      answerCheckData.setAnswerCheckCode(10);
       return answerCheckData;
     }
 
     if (directory.getSurveyQuNum() <= 0 || directory.getSurveyState() != 1) {
       answerCheckData.setAnswerCheck(false);
-      answerCheckData.setAnswerCheckCode(1);//问卷未开启
+      //问卷未开启
+      answerCheckData.setAnswerCheckCode(1);
       return answerCheckData;
     }
 
     //1、每台电脑或手机只能答一次, cookie
     Cookie cookie = CookieUtils.getCookie(request, surveyId);
-    Integer cookieAnNum = 0;
+    int cookieAnNum = 0;
     if (effective != null && effective > 1 && cookie != null) {
       //effective cookie
       String cookieValue = cookie.getValue();
@@ -127,7 +127,8 @@ public class ResponseController {
       }
       if (cookieAnNum > 0) {
         answerCheckData.setAnswerCheck(false);
-        answerCheckData.setAnswerCheckCode(3);//超过cookie次数限制
+        //超过cookie次数限制
+        answerCheckData.setAnswerCheckCode(3);
         //跳转到结束提示
         return answerCheckData;
       }
@@ -140,43 +141,33 @@ public class ResponseController {
       Long ipAnNum = surveyAnswerManager.getCountByIp(surveyId, ip);
       if (ipAnNum != null && ipAnNum > 0) {
         answerCheckData.setAnswerCheck(false);
-        answerCheckData.setAnswerCheckCode(23);//超过单个IP次数限制
+        //超过单个IP次数限制
+        answerCheckData.setAnswerCheckCode(23);
         return answerCheckData;
       }
     }
 
 
     String ruleCode = request.getParameter("ruleCode");
-		/*
-		if(StringUtils.isNotEmpty(ruleCode)){
-			//未超过次数限制
-			request.getSession().setAttribute("ruleCode"+surveyId,ruleCode);
-		}else{
-			request.getSession().removeAttribute("ruleCode"+surveyId);
-		}
-		*/
     //4、拥有口令密码才可以答题，可用次数，口令码
     if (rule != null && rule == 3) {
-      boolean isPwdCode = false;
-      if (StringUtils.isNotEmpty(ruleCode)) {
-        if (!ruleCode.equals(surveyDetail.getRuleCode())) {
-          //code不正确
-//					modelAndView.addObject("redType", 302);//code不正确
-          answerCheckData.setAnswerCheck(false);
-          answerCheckData.setAnswerCheckCode(302);//口令错误
-          return answerCheckData;
-        }
+      if (StringUtils.isNotEmpty(ruleCode) && !ruleCode.equals(surveyDetail.getRuleCode())) {
+        //code不正确
+        answerCheckData.setAnswerCheck(false);
+        //口令错误
+        answerCheckData.setAnswerCheckCode(302);
+        return answerCheckData;
       }
       if (StringUtils.isEmpty(ruleCode)) {
         answerCheckData.setAnswerCheck(false);
-        answerCheckData.setAnswerCheckCode(303);//口令为空
+        //口令为空
+        answerCheckData.setAnswerCheckCode(303);
         return answerCheckData;
       }
     }
 
-
     //7、何时结束，结束时间
-    if (endTime != null && ynEndTime == 1 && (new Date().getTime() - endTime.getTime()) > 0) {
+    if (endTime != null && ynEndTime == 1 && (System.currentTimeMillis() - endTime.getTime()) > 0) {
       directory.setSurveyState(2);
       directoryManager.saveByAdmin(directory);
       answerCheckData.setAnswerCheck(false);
@@ -200,17 +191,12 @@ public class ResponseController {
       }
     }
 
-
-    HttpSession httpSession = request.getSession();
-
     if (isSubmit) {
       String refCookieKey = "r_" + surveyId;
       Cookie refCookie = CookieUtils.getCookie(request, refCookieKey);
       if ((refresh == 1 && refCookie != null)) {
         String code = request.getParameter("jcaptchaInput");
-        if (!imageCaptchaService.validateResponseForID(request.getSession().getId(), code)) {
-//					return "redirect:/response/answer-dwsurvey.do?surveyId="+surveyId+"&redType=4";
-//				return answerRedirect(directory,4);
+        if (Boolean.FALSE.equals(imageCaptchaService.validateResponseForID(request.getSession().getId(), code))) {
           answerCheckData.setAnswerCheck(false);
           answerCheckData.setAnswerCheckCode(4);
           return answerCheckData;
@@ -248,14 +234,16 @@ public class ResponseController {
     Integer ynEndTime = surveyDetail.getYnEndTime();
     Date endTime = surveyDetail.getEndTime();
 
-    int effe = surveyDetail.getEffectiveTime();
-    effe = 24;
+    Integer effe = surveyDetail.getEffectiveTime();
+    if (effe == null) {
+      effe = 24;
+    }
     String refCookieKey = "r_" + surveyId;
     CookieUtils.addCookie(response, surveyId, (1) + "", effe * 60, "/");
     CookieUtils.addCookie(response, refCookieKey, (1) + "", null, "/");
 
     //7、何时结束，结束时间
-    if (endTime != null && ynEndTime == 1 && (new Date().getTime() - endTime.getTime()) > 0) {
+    if (endTime != null && ynEndTime == 1 && (System.currentTimeMillis() - endTime.getTime()) > 0) {
       directory.setSurveyState(2);
       directoryManager.saveByAdmin(directory);
     }
@@ -264,62 +252,48 @@ public class ResponseController {
       directory.setSurveyState(2);
       directoryManager.saveByAdmin(directory);
     }
-
-    String surveyLogId = request.getParameter("surveyLogId");
-//		surveyAnswerLogManager.upSurveyLogAnswerId(surveyLogId, answerId);
-
   }
 
   public Map<String, Map<String, Object>> buildSaveSurveyMap(HttpServletRequest request) {
-    Map<String, Map<String, Object>> quMaps = new HashMap<String, Map<String, Object>>();
-    Map<String, Object> yesnoMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.YESNO + "_");
-    quMaps.put("yesnoMaps", yesnoMaps);
-    Map<String, Object> radioMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.RADIO + "_");
-    Map<String, Object> checkboxMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.CHECKBOX + "_");
-    Map<String, Object> fillblankMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.FILLBLANK + "_");
-    quMaps.put("fillblankMaps", fillblankMaps);
-    Map<String, Object> dfillblankMaps = WebUtils
-        .getParametersStartingWith(request, "qu_"
-            + QuType.MULTIFILLBLANK + "_");
-    for (String key : dfillblankMaps.keySet()) {
-      String dfillValue = dfillblankMaps.get(key).toString();
-      Map<String, Object> map = WebUtils.getParametersStartingWith(
-          request, dfillValue);
-      dfillblankMaps.put(key, map);
-    }
-    quMaps.put("multifillblankMaps", dfillblankMaps);
-    Map<String, Object> answerMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.ANSWER + "_");
-    quMaps.put("answerMaps", answerMaps);
-    Map<String, Object> compRadioMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.COMPRADIO + "_");
-    for (String key : compRadioMaps.keySet()) {
-      String enId = key;
-      String quItemId = compRadioMaps.get(key).toString();
-      String otherText = request.getParameter("text_qu_"
-          + QuType.COMPRADIO + "_" + enId + "_" + quItemId);
+    Map<String, Map<String, Object>> quMaps = new HashMap<>(16);
+
+    Map<String, Object> yesNoMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.YESNO + "_");
+    quMaps.put(SurveyConst.KEY_YES_NO, yesNoMaps);
+
+    Map<String, Object> radioMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.RADIO + "_");
+    Map<String, Object> checkboxMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.CHECKBOX + "_");
+
+    Map<String, Object> fillBlankMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.FILLBLANK + "_");
+    quMaps.put(SurveyConst.KEY_BLANK, fillBlankMaps);
+
+    Map<String, Object> dFillBlankMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.MULTIFILLBLANK + "_");
+    dFillBlankMaps.forEach((k, v) -> {
+      Map<String, Object> map = WebUtils.getParametersStartingWith(request, v.toString());
+      dFillBlankMaps.put(k, map);
+    });
+    quMaps.put(SurveyConst.KEY_MULTI_BLANK, dFillBlankMaps);
+
+    Map<String, Object> answerMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.ANSWER + "_");
+    quMaps.put(SurveyConst.KEY_ANSWER, answerMaps);
+
+    Map<String, Object> compRadioMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.COMPRADIO + "_");
+    compRadioMaps.forEach((k, v) -> {
+      String otherText = request.getParameter("text_qu_" + QuType.COMPRADIO + "_" + k + "_" + v.toString());
       AnRadio anRadio = new AnRadio();
-      anRadio.setQuId(enId);
-      anRadio.setQuItemId(quItemId);
+      anRadio.setQuId(k);
+      anRadio.setQuItemId(v.toString());
       anRadio.setOtherText(otherText);
-      compRadioMaps.put(key, anRadio);
-    }
-    quMaps.put("compRadioMaps", compRadioMaps);
-    Map<String, Object> compCheckboxMaps = WebUtils
-        .getParametersStartingWith(request, "qu_" + QuType.COMPCHECKBOX
-            + "_");//复合多选
+      compRadioMaps.put(k, anRadio);
+    });
+
+    quMaps.put(SurveyConst.KEY_COMP_RADIO, compRadioMaps);
+    Map<String, Object> compCheckboxMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.COMPCHECKBOX + "_");
     for (String key : compCheckboxMaps.keySet()) {
-      String dfillValue = compCheckboxMaps.get(key).toString();
-      Map<String, Object> map = WebUtils.getParametersStartingWith(
-          request, "tag_" + dfillValue);
+      String dFillValue = compCheckboxMaps.get(key).toString();
+      Map<String, Object> map = WebUtils.getParametersStartingWith(request, "tag_" + dFillValue);
       for (String key2 : map.keySet()) {
         String quItemId = map.get(key2).toString();
-        String otherText = request.getParameter("text_"
-            + dfillValue + quItemId);
+        String otherText = request.getParameter("text_" + dFillValue + quItemId);
         AnCheckbox anCheckbox = new AnCheckbox();
         anCheckbox.setQuItemId(quItemId);
         anCheckbox.setOtherText(otherText);
@@ -327,48 +301,40 @@ public class ResponseController {
       }
       compCheckboxMaps.put(key, map);
     }
-    quMaps.put("compCheckboxMaps", compCheckboxMaps);
-    Map<String, Object> enumMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.ENUMQU + "_");//枚举
-    quMaps.put("enumMaps", enumMaps);
-    Map<String, Object> quOrderMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.ORDERQU + "_");//排序
+    quMaps.put(SurveyConst.KEY_COMP_CHECK_BOX, compCheckboxMaps);
+    Map<String, Object> enumMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.ENUMQU + "_");
+    quMaps.put(SurveyConst.KEY_ENUM, enumMaps);
+    Map<String, Object> quOrderMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.ORDERQU + "_");
     for (String key : quOrderMaps.keySet()) {
       String tag = quOrderMaps.get(key).toString();
-      Map<String, Object> map = WebUtils.getParametersStartingWith(
-          request, tag);
+      Map<String, Object> map = WebUtils.getParametersStartingWith(request, tag);
       quOrderMaps.put(key, map);
     }
-    quMaps.put("quOrderMaps", quOrderMaps);
+    quMaps.put(SurveyConst.KEY_ORDER, quOrderMaps);
     for (String key : radioMaps.keySet()) {
-      String enId = key;
       String quItemId = radioMaps.get(key).toString();
-      String otherText = request.getParameter("text_qu_"
-          + QuType.RADIO + "_" + enId + "_" + quItemId);
+      String otherText = request.getParameter("text_qu_" + QuType.RADIO + "_" + key + "_" + quItemId);
       AnRadio anRadio = new AnRadio();
-      anRadio.setQuId(enId);
+      anRadio.setQuId(key);
       anRadio.setQuItemId(quItemId);
       anRadio.setOtherText(otherText);
       radioMaps.put(key, anRadio);
     }
     // 评分题
-    Map<String, Object> scoreMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.SCORE + "_");
+    Map<String, Object> scoreMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.SCORE + "_");
     for (String key : scoreMaps.keySet()) {
       String tag = scoreMaps.get(key).toString();
-      Map<String, Object> map = WebUtils.getParametersStartingWith(
-          request, tag);
+      Map<String, Object> map = WebUtils.getParametersStartingWith(request, tag);
       scoreMaps.put(key, map);
     }
-    quMaps.put("scoreMaps", scoreMaps);
-    quMaps.put("compRadioMaps", radioMaps);
+    quMaps.put(SurveyConst.KEY_SCORE, scoreMaps);
+    quMaps.put(SurveyConst.KEY_COMP_RADIO, radioMaps);
     for (String key : checkboxMaps.keySet()) {
       String dfillValue = checkboxMaps.get(key).toString();
-      Map<String, Object> map = WebUtils.getParametersStartingWith(
-          request, dfillValue);
+      Map<String, Object> map = WebUtils.getParametersStartingWith(request, dfillValue);
       for (String key2 : map.keySet()) {
         String quItemId = map.get(key2).toString();
-        String otherText = request.getParameter("text_"
-            + dfillValue + quItemId);
+        String otherText = request.getParameter("text_" + dfillValue + quItemId);
         AnCheckbox anCheckbox = new AnCheckbox();
         anCheckbox.setQuItemId(quItemId);
         anCheckbox.setOtherText(otherText);
@@ -376,20 +342,18 @@ public class ResponseController {
       }
       checkboxMaps.put(key, map);
     }
-    quMaps.put("compCheckboxMaps", checkboxMaps);
+    quMaps.put(SurveyConst.KEY_COMP_CHECK_BOX, checkboxMaps);
 
-    Map<String, Object> uploadFileMaps = WebUtils.getParametersStartingWith(
-        request, "qu_" + QuType.UPLOADFILE + "_");//填空
-    quMaps.put("uploadFileMaps", uploadFileMaps);
-
+    Map<String, Object> uploadFileMaps = WebUtils.getParametersStartingWith(request, "qu_" + QuType.UPLOADFILE + "_");
+    quMaps.put(SurveyConst.KEY_UPLOAD_FILE, uploadFileMaps);
     return quMaps;
   }
 
-  public String answerRedirect(SurveyDirectory directory, int redType) throws Exception {
+  public String answerRedirect(SurveyDirectory directory, int redType) {
     return answerRedirect(directory, redType, null);
   }
 
-  public String answerRedirect(SurveyDirectory directory, int redType, String answerId) throws Exception {
+  public String answerRedirect(SurveyDirectory directory, int redType, String answerId) {
     if (directory != null) {
       return "redirect:" + DWSurveyConfig.DWSURVEY_WEB_SITE_URL + "/static/diaowen/message.html?sid=" + directory.getSid() + "&respType=" + redType + "&answerId=" + answerId;
     }
@@ -398,7 +362,7 @@ public class ResponseController {
 
 
   @RequestMapping("/answer-dwsurvey.do")
-  public ModelAndView answerRedirect(HttpServletRequest request, String surveyId, int redType) throws Exception {
+  public ModelAndView answerRedirect(HttpServletRequest request, String surveyId, int redType) {
     ModelAndView modelAndView = new ModelAndView();
     SurveyDirectory directory = directoryManager.getSurvey(surveyId);
     modelAndView.addObject("survey", directory);
@@ -430,8 +394,6 @@ public class ResponseController {
 
   /**
    * 获取问卷详情
-   *
-   * @return
    */
   @RequestMapping(value = "/survey.do")
   public String survey(HttpServletRequest request, HttpServletResponse response, String sid, String surveyId) {
@@ -440,28 +402,24 @@ public class ResponseController {
         SurveyDirectory surveyDirectory = directoryManager.get(surveyId);
         sid = surveyDirectory.getSid();
       }
-      String jsonPath = "/file/survey/" + sid + "/" + sid + ".json";
+      String jsonPath = "/file/survey/" + sid + StringConst.SLASH + sid + ".json";
       surveyJsonExists(sid, jsonPath);
       request.getRequestDispatcher(jsonPath).forward(request, response);
-    } catch (ServletException e) {
+    } catch (ServletException | IOException e) {
       e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
+      log.warn("===>survey[{}, {}] response fail: ", sid, surveyId, e);
     }
     return null;
   }
 
-
   @RequestMapping(value = "/survey_info.do")
   public String surveyInfo(HttpServletRequest request, HttpServletResponse response, String sid) {
-    String jsonPath = "/file/survey/" + sid + "/" + sid + "_info.json";
+    String jsonPath = "/file/survey/" + sid + StringConst.SLASH + sid + "_info.json";
     try {
       surveyJsonExists(sid, jsonPath);
       request.getRequestDispatcher(jsonPath).forward(request, response);
-    } catch (ServletException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (ServletException | IOException e) {
+      log.warn("===>survey[{}] response info fail: ", sid, e);
     }
     return null;
   }
@@ -525,6 +483,4 @@ public class ResponseController {
     }
     return null;
   }
-
-
 }

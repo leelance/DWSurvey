@@ -1,10 +1,10 @@
 package net.diaowen.dwsurvey.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.QuType;
 import net.diaowen.common.base.service.AccountManager;
+import net.diaowen.common.json.JsonUtils;
 import net.diaowen.common.plugs.httpclient.HttpResult;
 import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.service.BaseServiceImpl;
@@ -37,6 +37,7 @@ import javax.persistence.criteria.Predicate;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 
@@ -397,7 +398,6 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
   public List<SurveyDirectory> newSurveyList() {
     List<SurveyDirectory> result = new ArrayList<>();
     try {
-      SurveyDirectory entity = new SurveyDirectory();
       PageDto<SurveyDirectory> page = new PageDto<>();
       page.setPageSize(25);
       page = findPage(page, null, 1, null);
@@ -421,7 +421,6 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     SurveyDetail detail = directory.getSurveyDetail();
     detail.setDirId(surveyId);
     surveyDetailManager.save(detail);
-//		directory.setSurveyDetailId(detail.getId());
     //题目列表
     for (Question question : questions) {
       if (question != null) {
@@ -499,13 +498,12 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     page.setOrderBy("createDate");
     page.setOrderDir("desc");
 
-    return surveyDirectoryDao.findPage(page, criterions.toArray(new Criterion[criterions.size()]));
+    return surveyDirectoryDao.findPage(page, criterions.toArray(new Criterion[0]));
   }
 
 
   @Override
-  public PageDto<SurveyDirectory> findModel(PageDto<SurveyDirectory> page,
-                                            SurveyDirectory entity) {
+  public PageDto<SurveyDirectory> findModel(PageDto<SurveyDirectory> page, SurveyDirectory entity) {
     Integer surveyState = entity.getSurveyState();
     String surveyName = entity.getSurveyName();
     List<Criterion> criterions = new ArrayList<>();
@@ -542,15 +540,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
 
   @Override
   public List<SurveyDirectory> findByT1() {
-    Criterion cri1 = Restrictions.eq("visibility", 1);
-    Criterion cri2 = Restrictions.eq("parentId", "402880e5428a2dca01428a2f1f290000");
-    Criterion cri3 = Restrictions.eq("surveyTag", 1);
-    Criterion cri4 = Restrictions.isNull("sid");
-    PageDto<SurveyDirectory> page = new PageDto<>();
-    page.setOrderBy("createDate");
-    page.setOrderDir("desc");
-    page.setPageSize(10);
-    return surveyDirectoryDao.findPage(page, cri1, cri2, cri3, cri4).getResult();
+    return findByIndex();
   }
 
   @Override
@@ -577,7 +567,6 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     return surveyDirectory;
   }
 
-
   @Override
   public void delete(String[] id) {
     if (id != null) {
@@ -588,7 +577,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
   }
 
   @Override
-  public void upSurveyState(String surveyId, Integer surveyState) throws IOException {
+  public void upSurveyState(String surveyId, Integer surveyState) {
     if (surveyId != null && surveyState != null) {
       SurveyDirectory survey = findUniqueBy(surveyId);
       if (surveyState == 1) {
@@ -613,13 +602,13 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
   }
 
   @Override
-  public void devSurvey(SurveyDirectory survey) throws IOException {
+  public void devSurvey(SurveyDirectory survey) {
     String surveyId = survey.getId();
     survey.setSurveyState(1);
-    super.save(survey);
+    surveyDirectoryRepository.save(survey);
     String path = devSurveyJson(surveyId);
     survey.setJsonPath(path);
-    super.save(survey);
+    surveyDirectoryRepository.save(survey);
   }
 
   @Override
@@ -627,9 +616,8 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     try {
       SurveyDirectory surveyDirectory = findUniqueBy(surveyId);
       String sid = surveyDirectory.getSid();
-      ObjectMapper mapper = new ObjectMapper();
 
-      String infoJsonString = mapper.writeValueAsString(HttpResult.SUCCESS(surveyDirectory));
+      String infoJsonString = JsonUtils.toJsonString(HttpResult.SUCCESS(surveyDirectory));
       String savePath = File.separator + "file" + File.separator + "survey" + File.separator + sid + File.separator;
 
       writerJson(infoJsonString, savePath, sid + "_info.json");
@@ -637,7 +625,7 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
       List<Question> questions = questionManager.findDetails(surveyDirectory.getId(), 2);
       surveyDirectory.setQuestions(questions);
       surveyDirectory.setSurveyQuNum(questions.size());
-      String jsonString = mapper.writeValueAsString(HttpResult.SUCCESS(surveyDirectory));
+      String jsonString = JsonUtils.toJsonString(HttpResult.SUCCESS(surveyDirectory));
       String fileName = sid + ".json";
       writerJson(jsonString, savePath, fileName);
 
@@ -652,14 +640,15 @@ public class SurveyDirectoryManagerImpl extends BaseServiceImpl<SurveyDirectory,
     String rootPath = DWSurveyConfig.DWSURVEY_WEB_FILE_PATH;
     File dirFile = new File(rootPath + savePath);
     if (!dirFile.exists() && !dirFile.isDirectory()) {
-      dirFile.mkdirs();
+      Files.createDirectories(dirFile.toPath());
     }
+
     File localFile = new File(rootPath + savePath + fileName);
     if (!localFile.exists()) {
-      localFile.createNewFile();
+      Files.createFile(localFile.toPath());
     }
-    FileOutputStream fos = new FileOutputStream(localFile);
-    fos.write(jsonString.getBytes());
-    fos.close();
+    try (FileOutputStream fos = new FileOutputStream(localFile)) {
+      fos.write(jsonString.getBytes());
+    }
   }
 }

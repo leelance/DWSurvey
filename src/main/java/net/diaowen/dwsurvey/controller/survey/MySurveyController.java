@@ -50,7 +50,6 @@ public class MySurveyController {
     return PageResult.convert(p);
   }
 
-
   /**
    * 获取问卷详情
    */
@@ -59,7 +58,7 @@ public class MySurveyController {
     try {
       UserDetailsImpl user = accountManager.getCurUser();
       if (user != null) {
-        SurveyDirectory survey = surveyDirectoryManager.findUniqueBy(id);
+        SurveyDirectory survey = surveyDirectoryManager.findOne(id);
         survey = surveyAnswerManager.upAnQuNum(survey);
         return HttpResult.SUCCESS(survey);
       } else {

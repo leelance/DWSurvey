@@ -1,14 +1,19 @@
 package net.diaowen.dwsurvey.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.diaowen.common.QuType;
-import net.diaowen.common.plugs.page.PageDto;
 import net.diaowen.common.service.BaseServiceImpl;
+import net.diaowen.common.utils.RandomUtils;
 import net.diaowen.common.utils.RunAnswerUtil;
+import net.diaowen.common.utils.StringConst;
 import net.diaowen.common.utils.excel.XLSXExportUtil;
 import net.diaowen.common.utils.parsehtml.HtmlUtil;
+import net.diaowen.dwsurvey.common.SurveyConst;
 import net.diaowen.dwsurvey.config.DWSurveyConfig;
 import net.diaowen.dwsurvey.dao.SurveyAnswerDao;
 import net.diaowen.dwsurvey.entity.*;
+import net.diaowen.dwsurvey.repository.answer.*;
 import net.diaowen.dwsurvey.repository.survey.SurveyAnswerRepository;
 import net.diaowen.dwsurvey.repository.survey.SurveyDirectoryRepository;
 import net.diaowen.dwsurvey.service.*;
@@ -16,7 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.aspectj.util.FileUtil;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,36 +43,34 @@ import java.util.*;
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, String> implements SurveyAnswerManager {
-  @Autowired
-  private SurveyAnswerDao surveyAnswerDao;
-  @Autowired
-  private QuestionManager questionManager;
-  @Autowired
-  private AnYesnoManager anYesnoManager;
-  @Autowired
-  private AnRadioManager anRadioManager;
-  @Autowired
-  private AnFillblankManager anFillblankManager;
-  @Autowired
-  private AnEnumquManager anEnumquManager;
-  @Autowired
-  private AnDFillblankManager anDFillblankManager;
-  @Autowired
-  private AnCheckboxManager anCheckboxManager;
-  @Autowired
-  private AnAnswerManager anAnswerManager;
-  @Autowired
-  private AnScoreManager anScoreManager;
-  @Autowired
-  private AnOrderManager anOrderManager;
-  @Autowired
-  private AnUploadFileManager anUploadFileManager;
-  @Autowired
-  private SurveyDirectoryRepository surveyDirectoryRepository;
-  @Autowired
-  private SurveyAnswerRepository surveyAnswerRepository;
+  private final SurveyAnswerDao surveyAnswerDao;
+  private final QuestionManager questionManager;
+  private final AnYesnoManager anYesnoManager;
+  private final AnRadioManager anRadioManager;
+  private final AnFillblankManager anFillblankManager;
+  private final AnEnumquManager anEnumquManager;
+  private final AnDFillblankManager anDFillblankManager;
+  private final AnCheckboxManager anCheckboxManager;
+  private final AnAnswerManager anAnswerManager;
+  private final AnScoreManager anScoreManager;
+  private final AnOrderManager anOrderManager;
+  private final AnUploadFileManager anUploadFileManager;
+  private final SurveyDirectoryRepository surveyDirectoryRepository;
+  private final SurveyAnswerRepository surveyAnswerRepository;
+  private final AnYesNoRepository anYesNoRepository;
+  private final AnRadioRepository anRadioRepository;
+  private final AnCheckBoxRepository anCheckBoxRepository;
+  private final AnFillBlankRepository anFillBlankRepository;
+  private final AndFillBlankRepository andFillBlankRepository;
+  private final AnAnswerRepository anAnswerRepository;
+  private final AnEnumQuRepository anEnumQuRepository;
+  private final AnScoreRepository anScoreRepository;
+  private final AnOrderRepository anOrderRepository;
+  private final AnUploadFileRepository anUploadFileRepository;
 
   @Override
   public void setBaseDao() {
@@ -73,9 +78,79 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
   }
 
   @Override
-  public void saveAnswer(SurveyAnswer surveyAnswer,
-                         Map<String, Map<String, Object>> quMaps) {
-    surveyAnswerDao.saveAnswer(surveyAnswer, quMaps);
+  public void saveAnswer(SurveyAnswer surveyAnswer, Map<String, Map<String, Object>> quMaps) {
+    String surveyId = surveyAnswer.getSurveyId();
+    SurveyDirectory survey = surveyDirectoryRepository.findById(surveyId).orElse(null);
+    if (Objects.isNull(survey)) {
+      return;
+    }
+
+    //可以回答的最少项目数
+    int surveyQuAnItemNum = survey.getAnItemLeastNum();
+    surveyAnswer.setEndAnDate(new Date());
+
+    //计算答卷用时
+    Date endAnDate = surveyAnswer.getEndAnDate();
+    Date bgAnDate = surveyAnswer.getBgAnDate();
+    surveyAnswer.setTotalTime(0f);
+    if (endAnDate != null && bgAnDate != null) {
+      long time = endAnDate.getTime() - bgAnDate.getTime();
+      surveyAnswer.setTotalTime(Float.parseFloat(time / 1000 + ""));
+    }
+    surveyAnswerRepository.save(surveyAnswer);
+
+    int anCount = 0;
+    Map<String, Object> yesNoMaps = quMaps.get(SurveyConst.KEY_YES_NO);
+    anCount += saveAnYesNo(surveyAnswer, yesNoMaps);
+    //单选题
+    Map<String, Object> radioMaps = quMaps.get("radioMaps");
+    anCount += saveCompAnRadio(surveyAnswer, radioMaps);
+    //多选题
+    Map<String, Object> checkboxMaps = quMaps.get("checkboxMaps");
+    anCount += saveCompAnCheckbox(surveyAnswer, checkboxMaps);
+    //填空题
+    Map<String, Object> fillBlank = quMaps.get(SurveyConst.KEY_BLANK);
+    anCount += saveAnFill(surveyAnswer, fillBlank);
+    //多项填空题
+    Map<String, Object> multiFillBlank = quMaps.get(SurveyConst.KEY_MULTI_BLANK);
+    anCount += saveAnMultiFill(surveyAnswer, multiFillBlank);
+    //问答题
+    Map<String, Object> answerMaps = quMaps.get(SurveyConst.KEY_ANSWER);
+    anCount += saveAnAnswer(surveyAnswer, answerMaps);
+    //复合单选题
+    Map<String, Object> compRadioMaps = quMaps.get(SurveyConst.KEY_COMP_RADIO);
+    anCount += saveCompAnRadio(surveyAnswer, compRadioMaps);
+    //复合多选题
+    Map<String, Object> compCheckboxMaps = quMaps.get(SurveyConst.KEY_COMP_CHECK_BOX);
+    anCount += saveCompAnCheckbox(surveyAnswer, compCheckboxMaps);
+    //枚举题
+    Map<String, Object> enumMaps = quMaps.get(SurveyConst.KEY_ENUM);
+    anCount += saveEnum(surveyAnswer, enumMaps);
+    //评分题
+    Map<String, Object> scoreMaps = quMaps.get(SurveyConst.KEY_SCORE);
+    anCount += saveScore(surveyAnswer, scoreMaps);
+
+    //排序题 quOrderMaps
+    Map<String, Object> quOrderMaps = quMaps.get(SurveyConst.KEY_ORDER);
+    anCount += saveQuOrder(surveyAnswer, quOrderMaps);
+
+    Map<String, Object> uploadFileMaps = quMaps.get(SurveyConst.KEY_UPLOAD_FILE);
+    anCount += saveUploadFile(surveyAnswer, uploadFileMaps);
+
+    //保存anCount, 1:表示回完
+    surveyAnswer.setCompleteItemNum(anCount);
+    int isComplete = 0;
+    if (anCount >= surveyQuAnItemNum) {
+      isComplete = 1;
+    }
+    surveyAnswer.setIsComplete(isComplete);
+    int isEffective = 0;
+    if (anCount > 0) {
+      isEffective = 1;
+    }
+    //1:暂时只要答过一题就表示回答有效
+    surveyAnswer.setIsEffective(isEffective);
+    surveyAnswerRepository.save(surveyAnswer);
   }
 
   @Override
@@ -97,6 +172,7 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
    * @param question
    * @return
    */
+  @Override
   public int getquestionAnswer(String surveyAnswerId, Question question) {
     int score = 0;
     String quId = question.getId();
@@ -105,53 +181,53 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
 
     //重置导出
     question.setAnAnswer(new AnAnswer());
-    question.setAnCheckboxs(new ArrayList<AnCheckbox>());
-    question.setAnDFillblanks(new ArrayList<AnDFillblank>());
-    question.setAnEnumqus(new ArrayList<AnEnumqu>());
+    question.setAnCheckboxs(new ArrayList<>());
+    question.setAnDFillblanks(new ArrayList<>());
+    question.setAnEnumqus(new ArrayList<>());
     question.setAnFillblank(new AnFillblank());
     question.setAnRadio(new AnRadio());
     question.setAnYesno(new AnYesno());
-    question.setAnScores(new ArrayList<AnScore>());
-    question.setAnOrders(new ArrayList<AnOrder>());
+    question.setAnScores(new ArrayList<>());
+    question.setAnOrders(new ArrayList<>());
 
-    if (quType == QuType.YESNO) {// 是非题答案
+    if (quType == QuType.YESNO) {
       AnYesno anYesno = anYesnoManager.findAnswer(surveyAnswerId, quId);
       if (anYesno != null) {
         question.setAnYesno(anYesno);
       }
-    } else if (quType == QuType.RADIO || quType == QuType.COMPRADIO) {// 单选题答案
+    } else if (quType == QuType.RADIO || quType == QuType.COMPRADIO) {
       // 复合
       AnRadio anRadio = anRadioManager.findAnswer(surveyAnswerId, quId);
       if (anRadio != null) {
         question.setAnRadio(anRadio);
       }
-    } else if (quType == QuType.CHECKBOX || quType == QuType.COMPCHECKBOX) {// 多选题答案
+    } else if (quType == QuType.CHECKBOX || quType == QuType.COMPCHECKBOX) {
       // 复合
       List<AnCheckbox> anCheckboxs = anCheckboxManager.findAnswer(
           surveyAnswerId, quId);
       if (anCheckboxs != null) {
         question.setAnCheckboxs(anCheckboxs);
       }
-    } else if (quType == QuType.FILLBLANK) {// 单项填空题答案
+    } else if (quType == QuType.FILLBLANK) {
       AnFillblank anFillblank = anFillblankManager.findAnswer(
           surveyAnswerId, quId);
       if (anFillblank != null) {
         question.setAnFillblank(anFillblank);
       }
 
-    } else if (quType == QuType.MULTIFILLBLANK) {// 多项填空题答案
+    } else if (quType == QuType.MULTIFILLBLANK) {
       List<AnDFillblank> anDFillblanks = anDFillblankManager.findAnswer(
           surveyAnswerId, quId);
       if (anDFillblanks != null) {
         question.setAnDFillblanks(anDFillblanks);
       }
-    } else if (quType == QuType.ANSWER) {// 问答题答案
+    } else if (quType == QuType.ANSWER) {
       AnAnswer anAnswer = anAnswerManager
           .findAnswer(surveyAnswerId, quId);
       if (anAnswer != null) {
         question.setAnAnswer(anAnswer);
       }
-    } else if (quType == QuType.BIGQU) {// 大题答案
+    } else if (quType == QuType.BIGQU) {
       // List<Question> childQuestions=question.getQuestions();
       // for (Question childQuestion : childQuestions) {
       // score=getquestionAnswer(surveyAnswerId, childQuestion);
@@ -162,7 +238,7 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
       if (anEnumqus != null) {
         question.setAnEnumqus(anEnumqus);
       }
-    } else if (quType == QuType.SCORE) {// 评分题
+    } else if (quType == QuType.SCORE) {
       List<AnScore> anScores = anScoreManager.findAnswer(surveyAnswerId,
           quId);
       if (anScores != null) {
@@ -595,18 +671,22 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
    * 取一份卷子回答的数据
    */
   @Override
-  public PageDto<SurveyAnswer> answerPage(PageDto<SurveyAnswer> page, String surveyId) {
-    Criterion cri1 = Restrictions.eq("surveyId", surveyId);
-    Criterion cri2 = Restrictions.lt("handleState", 2);
-    page.setOrderBy("endAnDate");
-    page.setOrderDir("desc");
-    page = findPage(page, cri1, cri2);
-    return page;
+  public Page<SurveyAnswer> answerPage(PageRequest page, String surveyId) {
+    Specification<SurveyAnswer> spec = (root, query, cb) -> {
+      List<Predicate> predicates = new ArrayList<>();
+      predicates.add(cb.equal(root.get("surveyId"), surveyId));
+      predicates.add(cb.lt(root.get(SurveyConst.FIELD_HANDLE_STATE), 2));
+      return cb.and(predicates.toArray(new Predicate[0]));
+    };
+
+    Sort sort = Sort.by(Sort.Direction.DESC, "endAnDate");
+    page.withSort(sort);
+    return surveyAnswerRepository.findAll(spec, page);
   }
 
   public List<SurveyAnswer> answerList(String surveyId, Integer isEff) {
     Criterion cri1 = Restrictions.eq("surveyId", surveyId);
-    Criterion cri2 = Restrictions.lt("handleState", 2);
+    Criterion cri2 = Restrictions.lt(SurveyConst.FIELD_HANDLE_STATE, 2);
     Criterion cri3 = Restrictions.eq("isEffective", 1);
     if (isEff != null) {
       cri3 = Restrictions.eq("isEffective", isEff);
@@ -629,7 +709,7 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
   public SurveyDirectory upAnQuNum(SurveyDirectory survey) {
     Specification<SurveyAnswer> spec = (root, query, cb) -> {
       List<Predicate> predicates = new ArrayList<>();
-      predicates.add(cb.lt(root.get("handleState"), 2));
+      predicates.add(cb.lt(root.get(SurveyConst.FIELD_HANDLE_STATE), 2));
       predicates.add(cb.equal(root.get("isEffective"), 1));
 
       if (StringUtils.isNotBlank(survey.getId())) {
@@ -751,4 +831,291 @@ public class SurveyAnswerManagerImpl extends BaseServiceImpl<SurveyAnswer, Strin
     super.delete(t);
   }
 
+  /**
+   * 保存是非题答案
+   *
+   * @param answer surveyAnswer
+   * @param map    map
+   * @return count
+   */
+  public int saveAnYesNo(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+
+    List<AnYesno> list = new ArrayList<>();
+    map.forEach((k, v) -> {
+      AnYesno anYesno = new AnYesno(surveyId, surveyAnswerId, k, v.toString());
+      list.add(anYesno);
+    });
+
+    anYesNoRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 复合单选题
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  private int saveCompAnRadio(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnRadio> list = new ArrayList<>();
+    map.forEach((k, v) -> {
+      AnRadio tempAnRadio = (AnRadio) v;
+      String quItemId = tempAnRadio.getQuItemId();
+      String text = tempAnRadio.getOtherText();
+      AnRadio anRadio = new AnRadio(surveyId, surveyAnswerId, k, quItemId);
+      anRadio.setOtherText(text);
+      list.add(anRadio);
+    });
+
+    anRadioRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 保存复合多选题答案
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  @SuppressWarnings("unchecked")
+  private int saveCompAnCheckbox(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnCheckbox> list = new ArrayList<>();
+    map.forEach((k, v) -> {
+      Map<String, Object> m = (Map<String, Object>) v;
+      for (Map.Entry<String, Object> entry : m.entrySet()) {
+        AnCheckbox tempAnCheckbox = (AnCheckbox) entry.getValue();
+        String quItemId = tempAnCheckbox.getQuItemId();
+        String otherText = tempAnCheckbox.getOtherText();
+        if (StringUtils.isNotBlank(quItemId)) {
+          AnCheckbox anCheckbox = new AnCheckbox(surveyId, surveyAnswerId, k, quItemId);
+          anCheckbox.setOtherText(otherText);
+          list.add(anCheckbox);
+        }
+      }
+    });
+
+    anCheckBoxRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 保存单项填空题答案
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  private int saveAnFill(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnFillblank> list = new ArrayList<>();
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      String quId = entry.getKey();
+      String answerValue = entry.getValue().toString();
+      if (answerValue != null && !"".equals(answerValue)) {
+        list.add(new AnFillblank(surveyId, surveyAnswerId, quId, answerValue));
+      }
+    }
+    anFillBlankRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 保存多项填空题答案
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  @SuppressWarnings("unchecked")
+  private int saveAnMultiFill(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnDFillblank> list = new ArrayList<>();
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      String quId = entry.getKey();
+
+      Map<String, Object> m = (Map<String, Object>) entry.getValue();
+      if (m != null && m.size() > 0) {
+        for (Map.Entry<String, Object> mEntity : m.entrySet()) {
+          String quItemId = mEntity.getKey();
+          String answerValue = mEntity.getValue().toString();
+          if (answerValue != null && !"".equals(answerValue)) {
+            list.add(new AnDFillblank(surveyId, surveyAnswerId, quId, quItemId, answerValue));
+          }
+        }
+      }
+    }
+    andFillBlankRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 保存判断题答案
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  private int saveAnAnswer(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnAnswer> list = new ArrayList<>();
+
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      String quId = entry.getKey();
+      String answerValue = entry.getValue().toString();
+      if (answerValue != null && !"".equals(answerValue)) {
+        list.add(new AnAnswer(surveyId, surveyAnswerId, quId, answerValue));
+      }
+    }
+
+    anAnswerRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 保存枚举题
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  private int saveEnum(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnEnumqu> list = new ArrayList<>();
+
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      String[] splitKey = entry.getKey().split(StringConst.UNDERSCORE);
+      String quId = splitKey[0];
+      Integer quItemNum = Integer.parseInt(splitKey[1]);
+      String answerValue = entry.getValue().toString();
+      list.add(new AnEnumqu(surveyId, surveyAnswerId, quId, quItemNum, answerValue));
+    }
+
+    anEnumQuRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 保存评分题
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  @SuppressWarnings("unchecked")
+  private int saveScore(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnScore> list = new ArrayList<>();
+
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      String quId = entry.getKey();
+      Map<String, Object> mapRows = (Map<String, Object>) entry.getValue();
+      for (Map.Entry<String, Object> row : mapRows.entrySet()) {
+        String rowId = row.getKey();
+        String scoreValue = row.getValue().toString();
+        if (scoreValue != null && !"".equals(scoreValue)) {
+          list.add(new AnScore(surveyId, surveyAnswerId, quId, rowId, scoreValue));
+        }
+      }
+    }
+
+    anScoreRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 保存评分题
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  @SuppressWarnings("unchecked")
+  private int saveQuOrder(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnOrder> list = new ArrayList<>();
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      String quId = entry.getKey();
+      Map<String, Object> mapRows = (Map<String, Object>) entry.getValue();
+      for (Map.Entry<String, Object> row : mapRows.entrySet()) {
+        String rowId = row.getKey();
+        String orderNumValue = row.getValue().toString();
+        if (orderNumValue != null && !"".equals(orderNumValue)) {
+          list.add(new AnOrder(surveyId, surveyAnswerId, quId, rowId, orderNumValue));
+        }
+      }
+    }
+
+    anOrderRepository.saveAll(list);
+    return list.size();
+  }
+
+  /**
+   * 上传文件
+   *
+   * @param answer SurveyAnswer
+   * @param map    map
+   * @return count
+   */
+  private int saveUploadFile(SurveyAnswer answer, Map<String, Object> map) {
+    if (Objects.isNull(map) || map.isEmpty()) {
+      return 0;
+    }
+    String surveyId = answer.getSurveyId();
+    String surveyAnswerId = answer.getId();
+    List<AnUplodFile> list = new ArrayList<>();
+
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
+      String quId = entry.getKey().split(StringConst.UNDERSCORE)[0];
+      String answerValue = entry.getValue().toString();
+      String[] answerValues = answerValue.split("___");
+      String randomCode = RandomUtils.randomWordNum(6);
+      list.add(new AnUplodFile(surveyId, surveyAnswerId, quId, answerValues[0], answerValues[1], randomCode));
+    }
+
+    anUploadFileRepository.saveAll(list);
+    return list.size();
+  }
 }

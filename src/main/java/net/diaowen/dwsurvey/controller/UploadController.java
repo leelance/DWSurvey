@@ -105,13 +105,12 @@ public class UploadController {
       }
 
       if (upFileResults.size() <= 0) {
-        httpResult = HttpResult.FAILURE_MSG("未收到上传文件");
+        httpResult = HttpResult.fail("未收到上传文件");
       } else {
         httpResult = HttpResult.SUCCESS(upFileResults);
       }
 
     } catch (Exception e) {
-//            sb.append("{\"success\":\"false\",\"error\":\"上传失败\"}");
       e.printStackTrace();
       httpResult = HttpResult.EXCEPTION(e.getMessage());
     }
