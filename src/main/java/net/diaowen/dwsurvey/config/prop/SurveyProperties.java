@@ -23,6 +23,8 @@ public class SurveyProperties {
 
   private JwtProperties jwt;
 
+  private Version version;
+
   @Data
   public static class JwtProperties {
     /**
@@ -33,5 +35,12 @@ public class SurveyProperties {
      * jwt有效期
      */
     private long expiration;
+  }
+
+  @Data
+  public static class Version {
+    private String info;
+    private String number;
+    private String built;
   }
 }

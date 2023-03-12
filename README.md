@@ -1,5 +1,6 @@
 # 调问开源问卷系统（DWSurvey）
 
+    说明: 本代码是在原仓库基础拉去改造的
     此代码仓库为基于 Spring Boot2.7+, JPA, spring-security 实现的后端仓库
 
 [![star](https://gitee.com/wkeyuan/DWSurvey/badge/star.svg?theme=dark)](https://gitee.com/wkeyuan/DWSurvey/stargazers)
