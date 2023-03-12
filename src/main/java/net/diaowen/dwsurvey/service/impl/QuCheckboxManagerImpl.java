@@ -95,11 +95,14 @@ public class QuCheckboxManagerImpl extends BaseServiceImpl<QuCheckbox, String> i
   }
 
   @Override
-  @Transactional
   public void ajaxDelete(String quItemId) {
-    QuCheckbox quCheckbox = get(quItemId);
-    quCheckbox.setVisibility(0);
-    quCheckboxDao.save(quCheckbox);
+    quCheckBoxRepository.findById(quItemId).ifPresent(c -> {
+      String quId = c.getQuId();
+      int orderById = c.getOrderById();
+
+      quCheckBoxRepository.deleteById(quItemId);
+      quCheckBoxRepository.subCheckBoxOrderId(quId, orderById);
+    });
   }
 
   @Override

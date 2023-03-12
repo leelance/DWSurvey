@@ -91,11 +91,14 @@ public class QuMultiFillBlankManagerImpl extends BaseServiceImpl<QuMultiFillblan
   }
 
   @Override
-  @Transactional
   public void ajaxDelete(String quItemId) {
-    QuMultiFillblank quMultiFillblank = get(quItemId);
-    quMultiFillblank.setVisibility(0);
-    quMultiFillblankDao.save(quMultiFillblank);
+    quMultiFillBankRepository.findById(quItemId).ifPresent(r -> {
+      String quId = r.getQuId();
+      int orderById = r.getOrderById();
+
+      quMultiFillBankRepository.deleteById(quItemId);
+      quMultiFillBankRepository.subMultiFillBlankOrderId(quId, orderById);
+    });
   }
 
   @Override

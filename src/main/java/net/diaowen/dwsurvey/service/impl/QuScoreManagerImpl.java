@@ -96,11 +96,14 @@ public class QuScoreManagerImpl extends BaseServiceImpl<QuScore, String> impleme
   }
 
   @Override
-  @Transactional
   public void ajaxDelete(String quItemId) {
-    QuScore quScore = get(quItemId);
-    quScore.setVisibility(0);
-    quScoreDao.save(quScore);
+    quScoreRepository.findById(quItemId).ifPresent(r -> {
+      String quId = r.getQuId();
+      int orderById = r.getOrderById();
+
+      quScoreRepository.deleteById(quItemId);
+      quScoreRepository.subScoreOrderId(quId, orderById);
+    });
   }
 
   @Override
