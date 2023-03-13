@@ -4,16 +4,17 @@ import net.diaowen.dwsurvey.entity.SurveyStyle;
 
 /**
  * 问卷样式
- * @author keyuan(keyuan258@gmail.com)
  *
+ * @author keyuan(keyuan258 @ gmail.com)
+ * <p>
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
-public interface SurveyStyleManager  {
+public interface SurveyStyleManager {
 
-	public SurveyStyle get(String id) ;
-	
-	public SurveyStyle getBySurveyId(String surveyId) ;
-	
-	public void save(SurveyStyle surveyStyle) ;
+  SurveyStyle get(String id);
+
+  SurveyStyle getBySurveyId(String surveyId);
+
+  void save(SurveyStyle surveyStyle);
 }

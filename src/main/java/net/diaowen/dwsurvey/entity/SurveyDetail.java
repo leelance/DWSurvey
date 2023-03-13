@@ -24,8 +24,7 @@ public class SurveyDetail extends IdEntity {
    */
   private String dirId;
   /**
-   * 问卷有效性 限制 --------- 1不限制， 2使用Cookie技术， 3使用来源IP检测
-   * 4 每台电脑或手机只能答一次
+   * 问卷有效性限制 1.不限制 2.使用Cookie技术 3.使用来源IP检测 4.每台电脑或手机只能答一次
    */
   private Integer effective = 1;
   /**
@@ -41,16 +40,22 @@ public class SurveyDetail extends IdEntity {
    * 防刷新  1启用 0不启用
    */
   private Integer refresh = 1;
+  /**
+   * 刷新次数
+   */
   private Integer refreshNum = 3;
 
   /**
-   * 调查规则  --------  1公开, 2私有, 3令牌 3 表示启用访问密码
+   * 调查规则 1.公开 2.私有 3.令牌表示启用访问密码
    */
   private Integer rule = 1;
+  /**
+   * rule=3, 设置密码
+   */
   private String ruleCode = "令牌";
 
   /**
-   * 结束方式  ---------- 1手动结束   2依据结束时间  3依据收到的份数
+   * 结束方式 1.手动结束 2.依据结束时间 3.依据收到的份数
    */
   private Integer endType = 1;
   /**
@@ -70,10 +75,13 @@ public class SurveyDetail extends IdEntity {
    * 是否依据收到的份数结束
    */
   private Integer ynEndNum = 0;
+  /**
+   * 是否启用收集时间到了结束
+   */
   private Integer ynEndTime = 0;
 
   /**
-   * 问卷下面有多少题目数  ---
+   * 问卷题目数
    */
   private Integer surveyQuNum = 0;
   /**
@@ -86,7 +94,7 @@ public class SurveyDetail extends IdEntity {
   private Integer anItemMostNum = 0;
 
   /**
-   * 只有邮件邀请唯一链接的受访者可回答  1启用 0不启用
+   * 只有邮件邀请唯一链接的受访者可回答 1.启用 0.不启用
    */
   private Integer mailOnly = 0;
 
@@ -94,5 +102,8 @@ public class SurveyDetail extends IdEntity {
    * 显示分享
    */
   private Integer showShareSurvey = 1;
+  /**
+   * 是否公开结果 0.否 1.公开
+   */
   private Integer showAnswerDa = 0;
 }

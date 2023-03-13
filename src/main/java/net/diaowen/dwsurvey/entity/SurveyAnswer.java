@@ -1,30 +1,33 @@
 package net.diaowen.dwsurvey.entity;
 
-import java.util.Date;
+import net.diaowen.common.base.entity.IdEntity;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import java.util.Date;
 
-import net.diaowen.common.base.entity.IdEntity;
 /**
  * 具体的一次调查
- * @author keyuan
  *
+ * @author keyuan
+ * <p>
  * https://github.com/wkeyuan/DWSurvey
  * http://dwsurvey.net
  */
 @Entity
-@Table(name="t_survey_answer")
-public class SurveyAnswer extends IdEntity{
-	//问卷ID
+@Table(name = "t_survey_answer")
+public class SurveyAnswer extends IdEntity {
+	/**
+	 * 问卷ID
+	 */
 	private String surveyId;
 	//回答者ID
 	private String userId;
 	//回答时间
 	private Date bgAnDate;
 	//回答时间
-	private Date endAnDate=new Date();
+	private Date endAnDate = new Date();
 	//用时
 	private Float totalTime;
 	//回答者IP

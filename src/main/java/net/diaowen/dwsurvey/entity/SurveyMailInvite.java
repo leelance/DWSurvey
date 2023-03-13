@@ -1,11 +1,10 @@
 package net.diaowen.dwsurvey.entity;
 
-import java.util.Date;
+import net.diaowen.common.base.entity.IdEntity;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
-import net.diaowen.common.base.entity.IdEntity;
+import java.util.Date;
 
 /**
  *  邮件服务
